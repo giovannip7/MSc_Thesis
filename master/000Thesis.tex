@@ -202,17 +202,25 @@ Qui va l'Abstract in lingua italiana della tesi seguito dalla lista di parole ch
 % --------------------------------------------------------------------------
 % NUMBERED CHAPTERS % Regular chapters following
 % --------------------------------------------------------------------------
-\chapter*{Introduction}
+\chapter{Introduction}
 \label{intro}
-\input{00Introduction}
+\input{01Introduction}
+
+\chapter*{Theoretical background}
+From now on some basic knowledge needed to comprehend the reasoning of this work's study object is described and explained. 
+This section consists of:
+\begin{itemize}
+    \item \textbf{Chapter \ref{ch:ros}:} \nameref{ch:ros}
+    \item \textbf{Chapter \ref{ch:robot}:} \nameref{ch:robot}
+\end{itemize}
 
 \chapter{ROS}
-\label{ros}
-\input{01Chapter1}
+\label{ch:ros}
+\input{02Chapter2}
 
 \chapter{Robot}
-\label{robot}
-\input{02Chapter2}
+\label{ch:robot}
+\input{03Chapter3}
 
 
 \chapter{Conclusions and future developments}
