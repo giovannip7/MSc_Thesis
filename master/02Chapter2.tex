@@ -12,9 +12,15 @@ First dedicated robot programming languages arose in the 1970's.
 There were robot-centric data types and some robot function libraries. They did not allow neither hardware abstractio, nor multi-robot interaction nor integrated simulation. There did not exist code reuse or standardization.
 The efforts to build robot programming system continued through 80's, 90's and especially in the 2000's were there was a high push to standardize robot components, their interfaces and basic functions.\\
 Hence, ROS as it is known today was initially developed in 2007 at the Standford Artificial Intelligence Laboratory. Since 2013 it is managed by OSRF and nowadays it is used by many robots, universities and companies, becoming the de facto standard for robot programming.
+\begin{figure}
+    \centering
+    \includegraphics[scale=0.3]{Images/Chapter 2/ros_consortium.jpg}
+    \caption{ROS Industrial Consortium}
+    \label{fig:ros_consortium}
+\end{figure}
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.16]{Images/Chapter 1/PR2_Robot_Willow_Garage_6-1.jpeg}
+    \includegraphics[scale=0.16]{Images/Chapter 2/PR2_Robot_Willow_Garage_6-1.jpeg}
     \caption{Willow Garage PR2 robot}
     \label{fig:PR2}
 \end{figure}
@@ -37,7 +43,7 @@ Every middleware must provide:
  
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.5]{Images/Chapter 1/middleware.png}
+    \includegraphics[scale=0.5]{Images/Chapter 2/middleware.png}
     \caption{Meta Operating System}
     \label{fig:metaoperating}
 \end{figure}
@@ -67,7 +73,7 @@ The Filesystem Level includes all resources used in ROS, in particular
 \end{itemize}
 \begin{figure}
     \centering
-    \includegraphics[scale=0.5]{Images/Chapter 1/Filesystem.png}
+    \includegraphics[scale=0.5]{Images/Chapter 2/Filesystem.png}
     \caption{File System level representation}
     \label{fig:Filesystem}
 \end{figure}
@@ -84,7 +90,6 @@ In order to facilitate its development, in particular:
     \item \textit{package.xml}:XML file containing package structure 
     \item \textit{CHANGELOG.rst}: Many packages will define a changelog which can be automatically injected into binary packaging and into the wiki page for the package
 \end{itemize}\\
-
 \textbf{Metapackages}\\
 Metapackages are specialised structures whose only task is to represent a group of packages that have common characteristics with each other. The metapackages that are created in the context of older versions of ROS and later updated may also result from the conversion of older stacks that perform similar functions in the context of older versions of ROS \citet{rosmetapackages}.\\
 \newline
@@ -124,7 +129,7 @@ Example of srv file (C++):
 The Computation Graph is the peer-to-peer network of ROS processes that are processing data together. The basic Computation Graph concepts of ROS are nodes, Master, Parameter Server, messages, services, topics, and bags, all of which provide data to the Graph in different ways \citet{rosconcepts}.\\
 \begin{figure}[H]
     \centering
-    \includegraphics{Images/Chapter 1/computationgraph.png}
+    \includegraphics{Images/Chapter 2/computationgraph.png}
     \caption{Computation Graph}
     \label{fig:computationgraph}
 \end{figure}
@@ -175,7 +180,7 @@ It is the heart of the software and can only be active one master at a time. It 
 at the start of a node through the correct implementation of the file.
 \begin{figure}[H]
     \centering
-    \includegraphics{Images/Chapter 1/ROS-master-node-topic.png}
+    \includegraphics{Images/Chapter 2/ROS-master-node-topic.png}
     \caption{Visualization of Master-Node-Topic relationship}
     \label{fig:master-node-topic}
 \end{figure}
@@ -189,11 +194,31 @@ The parameter server is basically a component of the master, allowing certain co
 ROS provides built-in tools that come to hand when developing robotic applications or when we want to investigate deeper in some issues.
 The tools described below, although others exist, are the one that were used the most during Oversonic project: RViz (3D visualization tool), Rqt (framework that enables GUI tools: Rqt graph, that displays correlation between nodes and messages in graph form, and Rqt plot) and finally, special emphasis will be placed on Gazebo, a 3D simulator that has long been used in the course of this project.
 \subsection{RViz: 3D Visualization Tool}
-\begin{figure}
+RViz is a 3D visualization built-in tool of ROS.
+Its main purpose is to visualize ROS messages and topics in three dimensions, helping the user out to display data and to understand how our system behaves.
+When opening a new RViz window from scratch, what appears is a black 3D scene. The user can indeed build the environment by customising global options (e.g. the fixed frame that provides a static reference view) and grid settings.
+It is possible in fact to select which features we want to visualize, ticking them directly from the left panel (picture \ref{fig:rvizgui}).
+RViz can visualize topic from camera sensor, showing the images on a dedicated box. This feature applies to any kind of sensor that communicates via ROS to our robot, e.g. Lidar, tracking camera, RGB camera etc. 
+\begin{figure}[H]
     \centering
-    \includegraphics[scale = 0.5]{Images/Chapter 1/rviz.jpg}
+    \includegraphics[scale = 0.5]{Images/Chapter 2/rviz.jpg}
     \caption{RViz GUI}
     \label{fig:rvizgui}
 \end{figure}
 \subsection{Rqt: ROS GUI Development Tool}
-\subsection{Gazebo Simulator}
+Rqt is a software framework of ROS that implements various GUI tools in form of plugins.
+In particular, particularly useful is rqt graph.
+The main goal of this tool is to let visualize ROS nodes, topics and messages in order to facilitate debugging and understanding of the system. In fact, when using ROS it is useful to display the on-going graph to better understand how the various nodes are communicating and how messages are being exchanged.
+Rqt graph thus results useful in:
+\begin{itemize}
+    \item Having a global overview of the system
+    \item Debugging code in case there exist issues in nodes communication (e.g. two nodes are not connected in reality or too many nodes publish on the same topic)
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.3]{Images/Chapter 2/rqt_graph_turtlesim.png}
+    \caption{Graph from turtlesim}
+    \label{fig:rqtgraph}
+\end{figure}
+In figure \ref{fig:rqtgraph} two nodes have been initialized and from the graph we can see the path of the messages.
+ \subsection{Gazebo Simulator}
