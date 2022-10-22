@@ -189,6 +189,22 @@ at the start of a node through the correct implementation of the file.
 \textbf{Parameter server}\\
 The parameter server is basically a component of the master, allowing certain configurations accessible via the network API to be shared publicly with all nodes. Although not an extremely high-performing it is nevertheless useful for the testing phase of the software. Parameters are named using the normal ROS naming convention. This means that ROS parameters have a hierarchy that matches the namespaces used for topics and nodes, \citet{rosparmserv}.
 
+\subsubsection{Coordinate Frames and Transforms}
+Typically, a robot has many 3D reference systems that change over time. The ROS tf package keeps track of all these coordinate systems in a tree structure. This concept is also necessary to understand later on how URDF files handle the various parent and child links. The tf package therefore, keeps track of all existing relationships between the co-ordinate frames of points and calculates the transforms between them. The transform tree can also be viewed by developers for debugging purposes using the command view frames. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale = 0.5]{Images/Chapter 2/robottf.png}
+    \caption{Transform Frames of a robot}
+    \label{fig:robottf}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale = 0.5]{Images/Chapter 2/robottftree.png}
+    \caption{Transform Frames Tree of a robot}
+    \label{fig:robottf}
+\end{figure}
 \newpage
 \section{ROS Tools and Simulators}
 ROS provides built-in tools that come to hand when developing robotic applications or when we want to investigate deeper in some issues.
@@ -222,3 +238,72 @@ Rqt graph thus results useful in:
 \end{figure}
 In figure \ref{fig:rqtgraph} two nodes have been initialized and from the graph we can see the path of the messages.
  \subsection{Gazebo Simulator}
+Dealing with real robots means using physics labs, charging batteries, calibrating sensors and many other small tasks involving hardware.
+In real-life cases, even the best robots break down periodically due to human error, wear and tear or structural defects.  This is where simulators come in: in simulation, we can faithfully simulate the actions that the robot will perform, without the disadvantages listed above.
+It is also possible to model actuators and sensors either as ideal devices or by adding varying degrees of distortion, error or failure. Thus, the solution of simulating robots in a virtual environment is efficient and cost effective.
+The problem of SLAM (simultaneous localisation and mapping) has always been one of the most important research topics in the community.
+In response to this need, 'Stages', for example, with high computational capabilities and different kinematic configurations, built-in sensors have been developed over the years.
+In the context of this paper, it was decided to use Gazebo, a 3D simulator that provides various models of robots, sensors, environments, offering faithful and reliable simulations thanks to its physics engine. Gazebo is in fact one of the best-known simulators used in open source robotics.
+ \begin{figure}[H]
+     \centering
+     \includegraphics[scale=0.25]{Images/Chapter 2/gazebogui.png}
+     \caption{Gazebo GUI}
+     \label{fig:gazebogui}
+ \end{figure}
+To use the simulator, it is either possible to download a pre-fabricated model, available among the Gazebo robots (e.g. TurtleBot, PR2, Pioneer2 and other known robots) or to build your own robot model (we'll talk later on about SDF and URDF).
+As far as robots are concerned, a wide variety of sensors can be applied to your model: stereo camera, RGB camera, tracking, contact sensors. It is also possible to add the noise model to the sensors.
+ROS integrates very closely with Gazebo, thanks to the gazebo ros package. This provides a plugin module for the simulator that enables bi-unique communication between Gazebo and ROS.
+Simulated sensors and physical simulation data are thus transmitted bi-directionally between the two platforms.
+ \begin{figure}[H]
+     \centering
+     \includegraphics[scale=0.40]{Images/Chapter 2/GazeboSimArchitecture.png}
+     \caption{Gazebo Sim Architecture}
+     \label{fig:gazebosimarch}
+ \end{figure}
+ 
+\subsubsection{Robot Modelling Formats}
+As mentioned above, one of the possible ways of describing a robot model is through the URDF.
+The unified robot description format is a package containing a file in XML format.
+A URDF file is written in such a way that each link of the robot is a child of some other parent link, with joints connecting each link. In turn, the joints are defined by an offset from the reference frame of the parent link and their axis of rotation. 
+This creates a complete kinematics model. 
+Below is reported a simple sample of the creation of a base link:
+\begin{lstlisting}[language=XML]
+   <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder length="0.6" radius="0.2"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.6" radius="0.2"/>
+      </geometry>
+    </collision>
+  </link>
+\end{lstlisting}
+
+When we are developing complex robot models, it can happen that the notation within the XML file becomes verbose and prone to confusion.
+It is precisely for this reason that the XACRO (Macros XML) model was created, which is nothing more than an XML  that allows the design phase of the model to be divided into sub-parts, which are then imported one by one into the main file. 
+This results in cleaner code reading and facilitates debugging.
+
+Below is an example of importing arguments from an external file:
+\begin{lstlisting}[language=XML]
+    <xacro:property name=”robotname” value=”R001” />
+    <link name=”${robotname}s_leg” />
+\end{lstlisting}
+In order to use the model created within the Gazebo environment (which, as we have already mentioned, works with SDFormat files), it is necessary to convert first from XACRO to URDF and finally from URDF to SDF (Simulation Description Format). In fact, files with this format include a description of the world in which the robot will be placed, a series of features related to the simulated physical world (static and dynamic objects, lighting, terrain and even physics), and plug-in additions.
+Below is an example of SDF file defining a model from scratch:
+\begin{lstlisting}
+<?xml version='1.0'?>
+<sdf version='1.9'>
+  <model name='my_model'>
+    ...
+  </model>
+</sdf>
+\end{lstlisting}
+
+
+
+
+
