@@ -33,10 +33,92 @@ Indeed, humanoid robots are designed and built to replace humans in the most phy
 \newpage
 
 \section{Introduction}
-In recent years, the general public has become increasingly interested in robots and robotics research. New developments, e.g. robotic competitions, which "[push] beyond the boundaries of current technological
+In recent years, the general public has become increasingly interested in robots and robotics research. New developments, e.g. robotic competitions, which "push beyond the boundaries of current technological
 systems" (such as Defense Advanced Research Projects Agency (DARPA) in the
 United States), especially in the area of robotics, have promised and delivered
-fully integrated systems, \citet{robocomp}
+fully integrated systems, \citet{robocomp}.\\
+But the idea of creating intelligent, useful machines for humans has existed since the beginning of mankind.
+In fact, ever since civilisation, one of the most unattainable desires and ambitions for mankind has been to create artifacts of his own image.\\
+From a historical perspective, the first example that can be interpreted as such dates back to 3500 B.C., with the legend of the giant Talus, the slave forged by Hephaestus.
+Continuing in time and reaching the Babylonians in 1400 B.C., we can observe the creation of the first automatic machine, the clepsydra water clock.
+Continuing through the centuries, creations became more and more technologically advanced and jumping back to the 1500s, we encounter Leonardo da Vinci and his many inventions.
+\begin{figure}[H]
+    \centering
+    \includegraphics{Chapter 3/davinchiknight.jpeg}
+    \caption{Leonardo da Vinci’s mechanical knight: sketches on the right, rebuilt
+and showing its inner workings on the left.}
+    \label{fig:my_label}
+\end{figure}
+The concept of the robot then gradually entered people's minds thanks to this long process, but it was only in the 20th century that it took on a real physical connotation.
+\newline
+The term 'robot' was introduced in 1920 by the play 'Rossum's Universal Robot', by Karel Čapek: it derives etymologically from the Slavic root word 'robota' meaning subordinate labor.
+\begin{figure}[H]
+    \centering
+    \includegraphics{Images/Chapter 3/rossumplay.jpg}
+    \caption{A scene from Rossum's Universal Robot play, showing three robots}
+    \label{fig:rossum}
+\end{figure}
+Later, during the middle of the century, the first research into the connection between human and machine intelligence was undertaken, marking the beginning of Artificial Intelligence (AI).
+Between 1950 and 1980, Isaac Asimov wrote the so called "Three Laws of Robotics" in his book 'Runaround'. They are encoded in the "positronic brains" and are defined as follows, \citet{asimov}:
+\begin{itemize}
+\item A robot may not injure a human being or, through inaction, allow a human
+being to come to harm.
+\item A robot must obey the orders given to it by human beings, except where
+such orders would conflict with the First Law.
+\item A robot must protect its own existence as long as such protection does not
+conflict with the First or Second Law.
+\end{itemize}
+Around those years, the first robots were created, they stemmed from the confluence of advances in two fields: numerically controlled machines for precision manufacturing and remote control to handle highly radioactive materials.
+In fact, these two fields already featured modern applications of technologies such as mechanics, control, computational science and electronics.
+The first robots were therefore master-slave arms, designed to reproduce the mechanics of the human arm but with rudimentary control and little perception.\\
+During the second half of the century, the development of integrated circuits, digital computers and miniaturised components allowed terminal-controlled robots to be designed and developed.\\
+In fact, in the 1980s, robotics was defined as the science that studies the connection between action and perception.In fact, action involves a locomotion apparatus that moves in the environment and a manipulation apparatus that performs actions, modifying its surroundings, thanks to special actuators and end-effectors.\\
+Perception is then extracted from the sensors that provide information about the state of the robot (e.g. position and speed) and its surroundings (e.g. range and vision).
+In the 1990s, research was further accelerated by the need to rely on robots to replace human presence in critical environments.\\
+As we enter the new millennium, robots have undergone profound transformations both in their scope of use and in their shapes and sizes. 
+\subsubsection{Humanoid Robots}
+As reported in the article "Humanoid Robots:Historical Perspective, Overview and Scope", \citet{Siciliano2020}:\\
+\\
+"\textit{The long saga of humanoid robots in science fiction has influenced generations
+of researchers, as well as the general public, and serves as evidence that people
+are drawn to the idea of humanoid robots. Humans generally like to observe and
+interact with one another. In their social behavior, people are highly attuned to
+human characteristics, such as the sound of human voices and the appearance of
+human faces and body motion. \\
+Infants show preferences for these types of stimuli at
+a young age, and adults appear to use specialized mental resources when interpreting these stimuli. By mimicking human characteristics, humanoid robots can engage
+these same preferences and mental resources.\\
+Throughout history, the human body and mind have inspired artists, engineers,
+and scientists, using media as diverse as cave paintings, sculpture, mechanical toys,
+photographs, and computer animation. \\
+Humanoid robots serve as a powerful new
+medium that enables the creation of artifacts that operate within the real world
+and exhibit both human form and behavior. 
+\\The field of humanoid robotics focuses
+on the creation of robots that are directly inspired by human capabilities and/or
+selectively imitate aspects of human form and behavior. Humanoids come in a
+variety of shapes and sizes, from complete human-size legged robots to isolated
+robotic heads with human-like sensing and expression.}"\\
+Thus, humanoid robots were developed to be employed as multi purpose mechanical workers, and were designed to work alongside humans in daily tasks, being a support, living in the same environment and using the same tools.
+It must also be considered that when the robot moves around in the work environment, there can be multiple risks for the worker; in this respect, a subfield of robotics, called cognitive robotics, has taken hold.
+Indeed, robots can take advantage of the traditional communication methods used among humans to become more aware of their surroundings.
+An even more ambitious aim is to interpret human gestures through vision (eye gaze, body language). On the other hand, this could put a human in a difficult relationship with the robot, modelled by the phenomenon called 'uncanny valley', a concept introduced in the 1970s by Masahiro Mori, a professor at the Tokyo Institute of Technology.
+Masahiro in fact argues that:\\
+"\textit{I have noticed that, in climbing toward the goal of making robots appear human, our affinity for them increases until we come to a valley, which I call the uncanny valley.}"
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.8]{Images/Chapter 3/Mori_Uncanny_Valley.png}
+    \caption{Mori Uncanny Valley}
+    \label{fig:mori_uncanny_valley}
+\end{figure}
+Mori better explains this concept with the example of the prosthetic hand:
+\\
+"\textit{One might say that the prosthetic hand has achieved a degree of resemblance to the human form, perhaps on a par with false teeth. However, when we realize the hand, which at first site looked real, is in fact artificial, we experience an eerie sensation. For example, we could be startled during a handshake by its limp boneless grip together with its texture and coldness. When this happens, we lose our sense of affinity, and the hand becomes uncanny.}"
+\\
+On the other hand, many scientists and researchers in the robotics community see humanoid robots as a possibility to better investigate human nature itself.
+A part from the roles mentioned above, a humanoid robot could work as an avatar for telepresence, test ergonomics and serve for any other  roles that a human can do.
+Even though in the past decades, humanoids have only been applied in research field, times seem to be mature to put these robots on field and let them cooperate with humans.
+
 
 
 
