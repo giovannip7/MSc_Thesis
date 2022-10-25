@@ -1,3 +1,4 @@
+\section{Introduction}
 \\
 \\
 \\
@@ -32,7 +33,7 @@ Indeed, humanoid robots are designed and built to replace humans in the most phy
 
 \newpage
 
-\section{Introduction}
+\section{History of Robotics}
 In recent years, the general public has become increasingly interested in robots and robotics research. New developments, e.g. robotic competitions, which "push beyond the boundaries of current technological
 systems" (such as Defense Advanced Research Projects Agency (DARPA) in the
 United States), especially in the area of robotics, have promised and delivered
@@ -118,8 +119,58 @@ Mori better explains this concept with the example of the prosthetic hand:
 On the other hand, many scientists and researchers in the robotics community see humanoid robots as a possibility to better investigate human nature itself.
 A part from the roles mentioned above, a humanoid robot could work as an avatar for telepresence, test ergonomics and serve for any other  roles that a human can do.
 Even though in the past decades, humanoids have only been applied in research field, times seem to be mature to put these robots on field and let them cooperate with humans.
+\section{Robee: Oversonic Robotics configuration}
+In order to make physical sense of the results obtained within this project, it is important to define what technologies were used and what materials made up Robee's hardware.
+\subsection{Hardware components and software architecture}
+It is important to bear in mind that the Oversonic project has an architecture split between the
+robot (also referred to as the edge) and the cloud, and these two components coexist in a
+hybrid.
+Describing the system from the cloud, the hardware component consists of a scalable node pool based on
+the 2.35Ghz AMD EPYC 7452 processor that can achieve a boosted maximum frequency
+of 3.35GHz with 32 GB RAM memory, running a Kubernetes instance on top of Linux
+Ubuntu 18.04 (Bionic Beaver).
+As far as the robot is concerned, all the computational power is provided by 2 Intel NUCs 8 including an Intel Core i5-8259U Processor (6M Cache, up to 3.80 GHz), 8 GB RAM and Integrated Graphics Intel Iris Plus 655.
+The operating system which is mounted on is Linux Ubuntu 20.04 (Focal Fossa), and all the modules are running containers that on turn are managed by KubeEdge, a containers orchestration system built on Kubernetes.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.6]{Images/Chapter 3/oversonicarch.png}
+    \caption{Oversonic Architecture}
+    \label{fig:oversonicarch}
+\end{figure}
+\textbf{Internet of Things}\\
+In the case of the Robee project, the architecture is therefore composed of various software modules that are containerised and must be able to communicate with each other.
+The MQTT protocol is an optimal choice for this case.\\
+From the official MQTT.org site: "\textit{MQTT is an OASIS standard messaging protocol for
+the Internet of Things (IoT). It is designed as an extremely lightweight publish/subscribe
+messaging transport that is ideal for connecting remote devices with a small code footprint and minimal network bandwidth. MQTT today is used in a wide variety of industries, such as automotive, manufacturing, telecommunications, oil and gas}", \citet{mqtt}.\\
+MQTT therefore operates at the application layer of the OSI model, relying on TCP at the transport layer.
+The MQTT protocol establishes two kinds of entities in the network: a message broker and a number of clients. The broker is nothing more than a server that receives all messages from all clients and then routes these messages to the relevant destination clients. A client is anything that can interact with the broker to exchange messages. The messages are routed to clients basing
+on topics: every message is published over a specific topic, and only the clients subscribed
+to it will receive the message.\\ A client, therefore, can be an IoT sensor or an application in a data centre that processes IoT data.
+Each MQTT message has a command and a payload. The command defines the type of message:
+\begin{itemize}
+    \item CONNECT: initial message sent from client to broker, to instantiate a new connection
+    \item DISCONNECT: final message sent from client to broker to end the connection
+    \item PUBLISH: command to publish a message over a specified topic, it is sent from client to broker and then routed from broker to every client that appears to be subscribed to that topic
+    \item SUBSCRIBE: message sent from client to broker in order to request a subscription to a specified topic
+\end{itemize}
+All MQTT libraries provide simple ways to handle such messages directly and can automatically populate certain required fields, such as 'message' and 'client Id'.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale = 0.8]{Images/Chapter 3/mqtt.png}
+    \caption{The MQTT publish and subscribe model for IoT sensors}
+    \label{fig:mqtt}
+\end{figure}
+\subsection{Kinematics Configurations}
+    SOLO DIFFERENTIAL DRIVE DI ROBEE E AMBROGIONE O ANCHE SKID STEERING DI AMBROGINO?
+    EQUAZIONI!!!
 
+\subsection{Sensors}
+INTRO AI SENSORI 
+-> CAMERE UTILIZZATE D400 E T265
+\newpage
+POINTCLOUD?
 
-
-
-
+\newpage
+-> BEACON?
+-> APRILTAG?
