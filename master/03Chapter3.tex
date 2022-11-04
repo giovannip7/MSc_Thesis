@@ -162,8 +162,36 @@ All MQTT libraries provide simple ways to handle such messages directly and can 
     \label{fig:mqtt}
 \end{figure}
 \subsection{Kinematics Configurations}
-    SOLO DIFFERENTIAL DRIVE DI ROBEE E AMBROGIONE O ANCHE SKID STEERING DI AMBROGINO?
-    EQUAZIONI!!!
+The robots covered by the work in this thesis are mainly three 
+\begin{itemize}
+    \item R007 is a small autonomous mobile robot used by Oversonic as a prototype in the testing phase and features skid steering kinematics. In fact, it has two belts with two torque motors. The system is based on an Intel NUC and peripherals: two or four lidar sensors, a tracking camera and a depth camera mounted on the top base. The use of this AGV (autonomous guided vehicle) is mainly conceived in conjunction with its larger 'brother' Robee or in industrial logistics environments.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.05]{Images/Chapter 3/r007.jpg}
+        \caption{R007}
+        \label{fig:r007}
+    \end{figure}
+    \item R012 is Oversonic's humanoid robot, now in its fourth evolution from the initial prototype and featuring a differential drive base. The system is divided into two parts, a lower body and an upper body, each featuring an NUC terminal and several sensors, but in this analysis we will focus exclusively on the lower part. 
+    The lower body in fact contains within it the two torque motors, which move two wheels actively. For the robot's stability, two passive caster wheels have been added to the front and rear of the base. Two Lidar sensors are then mounted on the base and going up about halfway up the torso are a tracking and depth camera. 
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.15]{Images/Chapter 3/r012.PNG}
+        \caption{Robee R012}
+        \label{fig:r012}
+    \end{figure}
+    \item N002 is a robot used for the testing phase of Robee's lower body. It has a similar purpose of use to R007.
+    It has a differential drive base with two torque motor actuators, like R012 but with a physical arrangement of peripheral sensors but only one NUC.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.15]{Images/Chapter 3/n002.jpg}
+        \caption{N002}
+        \label{fig:N002}
+    \end{figure}
+\end{itemize}
+The main features of the skid steering and differential drive kinematics will be listed below.
+\textbf{Skid Steering}
+
+\textbf{Differential Drive}
 
 \subsection{Sensors}
 INTRO AI SENSORI 
