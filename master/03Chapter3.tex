@@ -161,7 +161,7 @@ All MQTT libraries provide simple ways to handle such messages directly and can 
     \caption{The MQTT publish and subscribe model for IoT sensors}
     \label{fig:mqtt}
 \end{figure}
-\subsection{Kinematics Configurations}
+\subsection{Robots Configurations}
 The robots covered by the work in this thesis are mainly three 
 \begin{itemize}
     \item R007 is a small autonomous mobile robot used by Oversonic as a prototype in the testing phase and features skid steering kinematics. In fact, it has two belts with two torque motors. The system is based on an Intel NUC and peripherals: two or four lidar sensors, a tracking camera and a depth camera mounted on the top base. The use of this AGV (autonomous guided vehicle) is mainly conceived in conjunction with its larger 'brother' Robee or in industrial logistics environments.
@@ -191,14 +191,252 @@ The robots covered by the work in this thesis are mainly three
 The main features of the skid steering and differential drive kinematics will be listed below.
 \textbf{Skid Steering}
 
+Skid Steering is a particular kinematics configuration featuring two tracks. It is composed of two tracks on its basic configuration, left and right, and the control variables are indeed left and right speed.
+Another configuration entails a 4 wheels set up featuring a low wheelbase configurations so that they can be deemed as two tracks.
+When rotating the central point does not move as the track is sliding on the ground. It is clear that this drive needs proper calibration and slippage modeling in order to be reliable.
+Some assumptions are needed for this kinematics model: the first, mass is placed in center of the fictitious medium, the second, all the wheels on the same side have the same speed.
+While in motion, this kind of drive presents multiple ICR and all of them share the same $\omega_{z}$.
+\begin{equation}
+\begin{bmatrix}
+    v_{x}\\
+    v_{y}\\
+    \omega_{z}
+\end{bmatrix}
+= J_{\omega} \begin{bmatrix}
+\omega_{l}r\\
+\omega_{r}r
+\end{bmatrix}\end{equation}
+
+ The wheels are turning and sliding simultaneously, resulting in two fictitious instantaneous centers of rotation: $ICR_{left}$ and $ICR_{right}$.
+ Under proper assumptions, skid-steering can be simplified to a differential drive kinematics.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.40]{Images/Chapter 3/skidsteer2.png}
+    \caption{Skid Steering Kinematics}
+    \label{fig:skidsteer}
+\end{figure}
+ Under proper assumptions, skid-steering can be simplified to a differential drive kinematics.
+ 
 \textbf{Differential Drive}
 
-\subsection{Sensors}
-INTRO AI SENSORI 
--> CAMERE UTILIZZATE D400 E T265
-\newpage
-POINTCLOUD?
+Differential drive configuration present the following construction:
+\begin{itemize}
+    \item two wheels working on the same axis
+    \item two independent motors, one for each wheel
+    \item one or two passive caster wheels
+\end{itemize}
 
-\newpage
--> BEACON?
--> APRILTAG?
+Control input in this case are the linear and the angular velocity of the robot, \textit{v} and {\textomega}.
+Wheels move around an Istantaneous Centre of Rotation on a circular path with istantaneous radius R and angular velocity \textomega.
+
+\begin{equation}
+    \begin{bmatrix}
+    x' \\
+    y' \\
+    \theta \\
+    \end{bmatrix} = \begin{bmatrix}
+    \cos{\omega \delta t} & -\sin{\omega \delta t} & 0 \\
+    \sin{\omega \delta t} & \cos{\omega \delta t} & 0 \\
+    0 & 0 & 1
+    \end{bmatrix}\begin{bmatrix}
+    x - ICR_{x} \\
+    y - ICR_{y} \\ 
+    \theta'    \end{bmatrix} + \begin{bmatrix}
+    ICR_{x} \\
+    ICR_{y} \\
+    \omega \delta t
+    \end{bmatrix}
+\end{equation}
+
+It is therefore possible to reconstruct robot pose from direct kinematics:
+
+\begin{equation}
+    x(t) = \frac{1}{2}(\int_{0}^{t} (V_{R}(t') + V_{L}(t')) \cos{\theta(t')} \,dt')
+\end{equation}
+
+\begin{equation}
+    y(t) = \frac{1}{2}(\int_{0}^{t} (V_{R}(t') + V_{L}(t')) \sin{\theta(t')} \,dt')
+\end{equation}
+
+\begin{equation}
+    \theta = \frac{1}{b}(\int_{0}^{t} (V_{R}(t') - V_{L}(t')) \,dt')
+\end{equation}
+
+
+where $V_{R}$ and $V_{L}$ are defined as follows:
+\begin{equation}
+    V_{R} = \omega (R + \frac{b}{2}) 
+\end{equation}
+
+\begin{equation}
+        V_{L} = \omega (R - \frac{b}{2})
+\end{equation}
+
+and as a consequence the following is derived:
+\begin{equation}
+    V = \frac{V_{R} + V_{L}}{2}
+\end{equation}
+\begin{equation}
+    \omega = \frac{V_{R} - V_{L}}{2}
+\end{equation}
+
+It becomes clear that we can compute robot odometry by integrating the so-called control variables and knowing the parameters of the wheels, namely the direct kinematics.
+On the contrary, we can derive control variables from a desired pose or velocity.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.10]{Images/Chapter 3/diffdrive.png}
+    \caption{Differential Drive Kinematics}
+    \label{fig:diffdrive}
+\end{figure}
+
+It is interesting to mention three borderline cases for this kind of drive:
+\begin{itemize}
+    \item $V_{L}$ = $V_{R}$: forward linear motion is straight
+    \item $V_{L}$ = - $V_{R}$: rotation in place
+    \item $V_{L}$ = 0 or $V_{R}$ = 0: respectively, rotation about left and right wheel
+\end{itemize}
+\subsection{Sensors}
+In order for a robot to perceive the world around it and to complete tasks autonomously, sensors are required. We distinguish between proprioceptive (internal state of the robot) and exteroceptive (state of the external environment) sensors. In this section, we focus on the exteroceptive sensors that have been used in Robee, providing a brief overview of their functioning.
+
+\textbf{D400 Intel Depth Camera}
+
+Depth cameras are a type of sensor widely used in robotic applications. They normally consist of two parts: a traditional digital camera, which captures RGB data, and a projector, which captures depth data.The depth system can work in several ways, for example by projecting a grid of light structured in a non-visible spectrum into a scene and then analysing the distortion created in this pattern to determine the distance and/or shape of any object placed in front, \citet{JONASSON2021112691}.
+In our application, the main reason for using the d455 camera in Robee's lower body is ????distance measurement?????.
+Traditional digital cameras shoot out an image as a grid of pixels in two dimensions. Each pixel is then associated with three values ranging from 0 to 255, which define the red, green and blue components, so black, for example, is (0,0,0) and a pure bright red would be (255,0,0). . This type of representation is called an RGB image. Thus, each image is composed of three channels each storing the values pertaining to each colour component.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.25]{Images/Chapter 3/rgb.jpeg}
+    \caption{Channel decomposition}
+    \label{fig:rgb}
+\end{figure}
+In the case of a depth camera, on the other hand, the pixels have different numerical values associated with them, where the number represents the distance of the corresponding pixel from the camera, thus the depth.
+Thus, by unifying this representation we will have a colour map where cooler colours represent closer obstacles, and warmer colours represent more distant obstacles, in depth.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.6]{Images/Chapter 3/depthmap.png}
+    \caption{Depth-map representation}
+    \label{fig:depthmap}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale = 0.5]{Images/Chapter 3/inteld455.jpeg}
+    \caption{D455 Intel Tracking Camera }
+    \label{fig:d455}
+\end{figure}
+
+Therefore, there are two types of three-dimensional image formats, the first being RGB-D and the second being pointcloud.
+The first has already been introduced above, and we recall that for each pixel, identified by the coordinates (x,y), four properties (R,G,B,depth) are associated.
+The substantial difference between the point cloud and RGB-D data is that in the pointcloud, the coordinates (x,y) represent the real world value instead of integer values. When viewing the two types of data, in fact, the former is presented in a sparse structure, while the latter is based on grid-aligned images. 
+A practical application of point cloud will be provided in chapter \ref{ch:pcl}
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.4]{Images/Chapter 3/pointcloudsample.png}
+    \caption{Point Cloud sample}
+    \label{fig:pointcloudsample}
+\end{figure}
+Thus, the point cloud can be constructed from RGB-D format images. In fact, by knowing an RGB-D dataset and the camera's intrensic values through a process called camera calibration. 
+Since pointclouds are sets of disordered vectors, it is common for researchers to change the structure of the pointcloud data into 3D voxel grids.
+The voxel grid geometry is in fact a grid of values in three dimensions, organised in layers of rows and columns.
+The reason for this conversion also comes from the fact that one often then has to deal with deep learning models that expect highly regular input data formats.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.25]{Images/Chapter 3/voxelgrid.png}
+    \caption{Voxel Grid example: A 3D Convolutional Neural Network for Real-Time Object Recognition}
+    \label{fig:voxel}
+\end{figure}
+
+
+\textbf{T265 Intel Tracking Camera}
+
+The T265 tracking camera is designed to integrate odometry data from the robot. It is in fact an independent and robust support for visual-inertia odometry and re-localisation.
+A key strength of visual-inertial odometry is that the various sensors available complement each other. The images from the visual sensors are supplemented by data from an onboard inertial measurement unit (IMU), which includes a gyroscope and accelerometer. The aggregated data from these sensors is fed into simultaneous localization and mapping (SLAM) algorithms.
+The tracking is done by comparing the information collected by the two fish-eye cameras, which collect images at 30 fps, \citet{inteltracking}.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}
+            \includegraphics[scale=0.5]{Images/Chapter 3/t265diagram.jpg}
+    \caption{Block diagram of Intel T265}
+    \label{fig:t265block}
+    \end{subfigure}%
+    ~
+    \begin{subfigure}
+        \includegraphics[scale=0.5]{Images/Chapter 3/t265.jpg}
+        \caption{T265 Intel Tracking Camera }
+        \label{fig:t265}
+    \end{subfigure}
+\end{figure}
+
+\textbf{YDLidar}
+
+LiDAR (Light Detection And Ranging) identifies technology that measures the distance to an object by illuminating it with laser light, while at the same time being able to return high-resolution three-dimensional information about the surrounding environment. A LiDAR typically uses several components: lasers, photodetectors and readout integrated circuits (ROICs) with time-of-flight (TOF) capability to measure distance by illuminating a target and analysing the reflected light.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}
+            \includegraphics[scale=0.7]{Images/Chapter 3/lidar.jpg}
+            \caption{Lidar scheme}
+            \label{fig:lidarscheme}
+        \end{subfigure}
+    \begin{subfigure}
+            \includegraphics{Images/Chapter 3/ydlidar.jpg}
+            \caption{YDLidar }
+            \label{fig:ydlidar}
+    \end{subfigure}
+\end{figure}
+YDLIDAR G2 is a 360-degree two-dimensional rangefinder 
+developed by YDLIDAR. Based on the principle of triangulation, it is equipped withrelatedoptics, electricity, and algorithm design to achieve high-frequency and high-precision distancemeasurement. The mechanical structure rotates 360 degrees to continuously output the angle information as well as the point cloud data of the scanning environment while ranging.
+
+\subsubsection{Visual Fiducial System}
+During the use and development of Robee's navigation, so-called Apriltags were used, a particular visual fiducial system chosen for its robustness and integration with the simulated Gazebo environment.
+Visual fiducials are nothing more than artificial landmarks, designed to be easily recognisable within the working environment and distinguishable from one another.
+The methodology is similar to that of a common QR code but with significant applications and objectives.
+In fact, unlike a QR code, where the user has to frame the tag with the camera and capture the high-resolution snapshot, these types of tags are designed to work with a small amount of information (even as little as 12 bits) but with performance and ease of use that is clearly superior to QR codes. In fact, these types of tags are designed to be automatically detectable and localisable even in low resolution conditions, even providing the relative position and orientation of the tag with respect to the camera.
+In terms of size, the Apriltags used range from 50 to 100 pixels, including the payload, \citet{olson2011tags}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.25]{Images/Chapter 3/apriltag.jpg}
+    \caption{AprilTag distance and orientation measurement}
+    \label{fig:apriltag}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.6]{Images/Chapter 3/apriltagsteps.png}
+    \caption{How AprilTag detection is performed}
+    \label{fig:apriltagsteps}
+\end{figure}
+Visual fiducial systems have been used in robotics to improve human/machine interaction, enabling the development of commands such as 'follow me'.
+In the context of this work, tags were used for SLAM (Simultaneous Localisation and Mapping), as an independent support to the sensors mentioned in the previous section.
+In fact, in both the simulated and real environment, tags were placed in strategic positions in order to reposition the robot to the correct pose by comparing the information coming from the sensors and that coming from the tags.
+AprilTag provides a package for perfect ROS integration.
+\begin{figure}[H]
+    \centering
+    \includegraphics{Images/Chapter 3/aprilros.png}
+    \caption{ROS TF}
+    \label{fig:aprilros}
+\end{figure}
+
+The apriltag ROS package then takes as input the topic of the rectified image and returns a list of recognised tags and their positions in 3 dimensions.
+However, in order to work, one must specify in the configuration files (settings and tags) which tag families to search for.
+A practical application will be provided in chapter \ref{ch:sim_test}
+
+\subsubsection{Indoor Positioning System}
+
+For the purpose of this thesis, another technology that has been used is the Indoor Positioning System.
+This is in fact a new approach to the problem of localisation when remote GNSS satellites, which are commonly blocked indoors, are not available.
+There is now a wide offer for this type of solution, even with different communication protocols at its base: from Wi-Fi signals to Bluetooth to ultrasound.
+In Robee, the choice was made to use an IPS system provided by Marvelmind, which is based on ultrasonic and time-of-flight (ToF) measurements with trilateration and which also provides for communication via ROS topics, thus providing integration with the robotics platform used.
+The system proposed by Marvelmind consists of a series of static beacons (four were used in our case), placed on the walls of the production area of Oversonic Robotics.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.25]{Images/Chapter 3/beacon.jpg}
+    \caption{MarvelMind beacons kit}
+    \label{fig:beacon}
+\end{figure}
+
+Each beacon sends and receives a stream of hypersonic signals continuously. There is also a modem, which is connected to the PC on which the supplied software is run, and a beacon called a 'hedgehog' which is placed on the vehicle to be located, in this case Robee. The hedgehog then receives the signals from the four beacons and sends them to the modem, which proceeds to triangulate.
+The communication frequency is customisable and directly affects localisation accuracy, which in the basic configuration is claimed to be +/- 2 cm.
