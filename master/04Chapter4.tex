@@ -1,7 +1,343 @@
 \section{Introduction}
-\newpage
+In this chapter, we will address SLAM (simultaneous localization and mapping) and navigation techniques used in this thesis. We will focus exclusively on the literature overview of techniques used in practice, without comparing the various existing approaches. We will therefore overview all the components of the see-plan-act architecture.
+The sense-plan-act architecture in fact explains the entire process that starts from the map building, to the global and local planning up to sensor fusion.
+It is indeed composed of:
+\begin{itemize}
+    \item Map
+    \item Sensors 
+    \item Current Position
+    \item Goal Position
+    \item Trajectory Planning
+    \item Trajectory Following and Obstacle Avoidance
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.25]{Images/Chapter 4/senseplanact.png}
+    \caption{Block scheme representation of sense plan act architecture}
+    \label{fig:my_label}
+\end{figure}
+
+\section{Simultaneous Localization and Mapping}
+In this first subsection we will focus on map side, understanding how maps are build, interpreted and how the agents localize inside the map. There exists two main types of representing a map:
+\begin{itemize}
+    \item Landmark-based: a particular type of representation, mainly used for localization, that is based on detecting landmarks (?). This technique results in a sparse representation of the space, leaving much to the unknown;
+    \item Grid maps: the map results in a discredited version of the environment, where each cell contain information about occupation/non occupation/unkwown. It results in a very dense representation where almost the totality of the cells are caught.
+\end{itemize}
+
+In the scope of this work we will focus on occupancy grid map.
+\subsection{Occupancy Grid Map}
+As anticipated, occupancy grid map is a peculiar map representation that attempts to discretize the continous environment into a two dimensional grid map. The grid map is again divided into array cells of size from 5 to 50 cm and each of them hold a probability value that stands for the likelihood to be free or occupied.
+Thus, occupancy grid maps try to solve the problem of reconstructing consistent maps from noisy and uncertain measurement data, under the hypothesis of knowing the robot pose. 
+The reasoning behind most occupancy grid mapping algorithm is to calculate the posterior over maps, given the data, in a probabilistic way.
+\begin{equation}
+    p(m | z_{1:t},x_{1:t})
+\end{equation}
+where m is the map,$z_{1:t}$ is the set of measurements up to time t and $x_{1:t}$ the set of all the poses taken by the robot, namely its path.
+Being $m_{i}$ the i-th grid cell and having it a binary occupancy value that states if a cell is free or occupied (1 for the cell being occupied, 0 free), we can define:
+\begin{equation}
+m = \sum_{i}^{}{m_{i}}    
+\end{equation}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{Images/Chapter 4/occupancygrid.png}
+    \caption{Sample of an Occupancy Grid}
+    \label{fig:occupancygrid}
+\end{figure}
+Due to the curse of dimensionality, the probabilistic approach reduces to estimate the single cell occupancy rather than the entire map:
+\begin{equation}
+    p(m_{i} | z_{1:t},x_{1:t})
+\end{equation}
+
+To calculate the single cell occupancy we resort to Bayes rule:
+\begin{equation}
+    p(m_{i} | z_{1:t},x_{1:t}) = \frac{p(z_{t} | m_{i},z_{1:t-1},x_{1:t}) p(m_{i} | z_{1:t-1},x_{1:t})}{p(z_{t} |z_{1:t-1},x_{1:t})}
+\end{equation}
+
+Additionally recurring to Markov assumption, stating that the current state depends on only a finite fixed number of previous states, measurement $z_{t}$ depends only on $x_{t}$ and $m_{i}$.
+It is common use at this point to adopt log-odds representation of occupancy, as to avoid being with probabilities close to 0 and 1:
+\begin{equation}
+    l_{t,i} = \log{\frac{p(m_{i} | z_{1:t},x_{1:t})}{1 - p(m_{i} | z_{1:t},x_{1:t})}}
+\end{equation}
+
+The process loops and assumes the form of the algorithm \ref{alg:occupancy}.
+It is important to note that only the cells which fall under the sensor cone of measurement are updated through the inverse sensor model, \citet{thrun2005probabilistic}.
+\begin{algorithm}
+\caption{Occupancy Grid Algorithm}\label{alg:occupancy}
+\begin{algorithmic}
+\STATE Algorithm occupancy grid mapping({$l_{t-1,i},x_{t},z_{t}$})
+\FOR{all cells $m_{i}$}
+    \IF{$m_{i}$ in perceptual field of $z_{t}$}
+        \STATE $l_{t,i}$ = $l_{t-1,i}$ + $inverse_sensor_model(m_{i},x_{t},z_{t} - l_{0})$
+    \ELSE
+        \STATE $l_{t,i}$ = $l_{t-1,i}$
+    \ENDIF
+\ENDFOR
+\RETURN  {$l_{t,i}$}
+\end{algorithmic}
+\end{algorithm}
+
+where the inverse sensor model is defined as follows:
+\begin{equation}
+    inverse_sensor_model(m_{i},x_{t},z_{t}) = p(m_{i}|z_{t}, x_{t})
+\end{equation}
+The motivation for the "inverse" denomination is because it reasons from effects to causes: it provides an information about the world where that same information was derived from a measurement caused by the world it self:
+
+\begin{equation}
+    p(m_{i} | z_{1:t},x_{1:t}) = \eta \int{m:m(i)=m_{i}}^{} p(z | x,m) p(m) dm
+\end{equation}
+
+A function approximator has to be used, since this algorithm cannot be computed due to the large map space.
+
+\subsection{SLAM algorithm}
+At this point we turn to the problem of SLAM, Simultaneous Localisation and Mapping. This stems from the robot's need to map a new environment, of which nothing is known, and at the same time to localise the robot itself within the map being created. The problem is particularly difficult as one does not have access to the robot's poses and uncertainty is kept on all the components.
+Moreover, it proposes to correct both odometry and uncertainty of estimated position and landmark.
+Two approaches to SLAM can be defined, from a probabilistic point of view:
+\begin{itemize}
+    \item Full SLAM: simultaneous estimate of path and map
+    \item Online SLAM: simultaneous estimate of the most recent pose and map
+\end{itemize}
+
+\textbf{Full SLAM}
+Full SLAM addresses the problem of estimating the joint probability of the entire trajectory and landmark.
+\begin{equation}
+    p(x_{1:t}, m | z_{1:t},u_{1:t})
+\end{equation}
+For this purpose we propose a significant example: FastSLAM.
+Fast Simultaneous Localization and Mapping uses a sampled particle filter distribution model, solving the full SLAM problem.
+If we consider the full trajectory $X_{t}$ rather than a single pose $x_{t}$, the following holds:
+\begin{equation}
+    p(X_{t}, m | z_{t}) = P(X_{t}| z_{t}) P(m | X_{t}, z_{t})
+\end{equation}
+where $P(X_{t}| z_{t})$ is the estimate of the trajectory and $P(m | X_{t}, z_{t})$ is the estimate of the map given the trajectory.
+Thus, in FastSLAM the trajectory $X_{t}$ is represented by particles $X_{t}(i)$ while the map is represented by a factorization called Rao-Blackwellized filter.
+The approach so is to treat each pose particle as it it was the entire trajectory, processing all of the feature measurements independently.
+
+\begin{equation}
+    P(m | X_{t}^{(i)},z_{t}) = \prod_{j}^{M} P(m_{j} | X_{t}^{(i)},z_{t})
+\end{equation}
+Indeed, once the trajectory is known, all of the features become uncorrelated.
+
+\begin{equation}
+    p(x_{1:t},l_{1:m} | z_{1:t},u_{0:t-1}) = p(x_{1:t} | z_{1:t},u_{0:t-1})p(l_{1:m} | x_{1:t},z_{1:t}) 
+\end{equation}
+where we have SLAM posterior, robot path posterior and landmark positions respectively. Previous equation can be simplified by factorization as follows:
+
+\begin{equation}
+     p(x_{1:t},l_{1:m} | z_{1:t},u_{0:t-1}) = p(x_{1:t} | z_{1:t},u_{0:t-1})\prod_{i=1}^{M}p(l_{i} | x_{1:t},z_{1:t})
+\end{equation}
+In this way the dimension of state space is reduced making particle filtering possible:
+\begin{equation}
+    O(N\times\log(M))
+\end{equation}
+with N being the number particles and M the number of map features
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.35]{Images/Chapter 4/slam_uncertainty.png}
+    \caption{SLAM problem: initial uncertainty on pose and consequent decrease thanks to previously seen landmarks, \citet{thrun2004}}
+    \label{fig:slam_uncertainty}
+\end{figure}
+Summarizing, FastSLAM adopts a Rao-Blackwellized particle filtering based on landmarks, \citet{montemerlo2002}, where each particle is a trajectory, each landmark is represented by a 2x2 EKF and therefore each particle has to maintain M EKFs.
+
+
+
+\textbf{Online SLAM}
+Online SLAM entails estimating the posterior over the last pose along with the map:
+$p(x_{t},m_{i} | z_{1:t},u_{1:t})$ where $x_{t}$ is the pose at time t, m is the map, $z_{1:t}$ $u_{1:t}$ the measurements available up to time t.
+The fact that we refer to this technique as online SLAM directly derives from the fact that we're considering data at time t, estimating last pose only.
+\begin{equation}
+    p(x_{t}, m | z_{1:t},u_{1:t}) = \int \int ... \int{}^{} p(x_{1:t}, m | z_{1:t}, u_{1:t}) dx_{1}dx_{2} ... dx_{t-1}
+\end{equation}
+As one can notice, the online SLAM problem is the result of integrating out one at a time past poses from the full SLAM problem.
+A significant example of a proposed solution to Online SLAM is proposed: EKF SLAM.
+Extended Kalman Filter Simultaneous Localization and Mapping uses a linearized Gaussian probability distribution.
+
+
+\begin{algorithm}
+\caption{Extended Kalman Filter}\label{alg:ekf_slam}
+\begin{algorithmic}
+\STATE Extended Kalman filter({$\mu_{t-1},\Sigma_{t-1},u_{t},z_{t}$})
+\STATE {$\mu$}' = g($u_{t}$, $\mu_{t-1}$)
+\STATE $\Sigma_{t}^{}$' = $G_{t}\Sigma_{t-1}^{} G_{t}^{T} + R_{t}$
+\STATE $K_{t}$ = $\Sigma_{t}'H_{t}^{T}(H_{t}\Sigma_{t}'H_{t}^{T} + Q_{t})^-1$
+\STATE $\mu_{t}$ = $\mu_{t}' + K_{t}(z_{t} - h{\mu_{t}})$
+\STATE $\Sigma_{t}$ = $(I - K_{t}H_{t})\Sigma_{t}'$
+\RETURN $\mu_{t}, \Sigma_{t}$
+\end{algorithmic}
+\end{algorithm}
+
+EKF-SLAM promises good performances but it has two main drawbacks: it employs linearized models of non-linear motion and observation models, inheriting many caveats; it is computationally demanding.
+One possible solution to this problem is the above reported FastSLAM (Rao-Blackwellisation filter).
+
+\subsection{SLAM Toolbox}
+During the experience at Oversonic Robotics, the SLAM toolbox was chosen for the simultaneous localisation and mapping problem, though many predecessors exist.
+The ROS packages responsible of SLAM can be divided into Bayes-based filter implementations, like GMapping and HectorSLAM, and graph-based implementations, as Cartographer and Karto SLAM.
+The SLAM Toolbox package is an open source software developed by Steve Maceski which use graph based approach and occupancy grid map.
+It has been widely used on the various ROS distros and has become the default SLAM algorithm for ROS2. It arose from the need to build accurate maps of large environments, where previous SLAM tools had shown shortcomings.\\
+SLAM Toolbox provides three operating modes, \citet{Macenski2021}:
+\begin{itemize}
+    \item Synchronous Mapping: provides the ability to map and localize in an environment while keeping a bunch of measurements to be added to SLAM. This results useful when the quality of the map is important.
+    \item Asynchronous Mapping: on the contrary, this mode manages new measurements only when previous measurement has been completed. This makes this modality useful when real time localization is crucial.
+    \item Pure Localization: cannot detects changes in the space. It tries to match a local bunch of measurements with the data originally gathered.
+\end{itemize}
+----------------COSA AGGIUNGERE ANCORA??---------------------
+
 \section{Global Planning}
+Mobile robots are meant to move from their current positions to some goal inside the map.
+Once that the SLAM task has been performed and a map has been obtained, we can address the This is known as trajetory planning and it is managed by the so-called global planner.
+Robot motion planning goals are:
+\begin{itemize}
+    \item collision-free trajectories
+    \item most efficient or most optimal (depending on the chosen optimality criterion) trajectory
+\end{itemize}
+The problem that global planner addresses regards finding a collision free path between an initial pose and the goal, taking into account the existing constraints.
+It is important to distinguish between some concepts used in this scope:
+\begin{itemize}
+    \item Path: a geometric locus of way points
+    \item Trajectory: a path for which a temporal law is specified
+    \item Manouver: a series of actions that a vehicle should execute
+\end{itemize}
+
+In the scope of this thesis we are going to analyze two path planning algorithms: A* and D*.
+Both this algorithms are part of the graph based planning family.
+The underlying idea is to construct a discretized representation of the map, building a graph out of it (4 or 8 neighbors connectivity are possible) and eventually searching for the shortest path in the graph, namely the optimal solution. It is relevant to report that the resolution of the grid directly influences the accuracy of the plan: a more dense resolution will describe in a more complete way the map it is investigating, thus resulting in a deeper analysis of the possible paths.
+
+\begin{figure}[H]
+     \centering
+     \subfloat[][a]{\includegraphics[scale=0.50]{Images/Chapter 4/4connectivity.png}\label{4 connectivity}}
+     \hfill
+     \subfloat[][b]{\includegraphics[scale=0.51]{Images/Chapter 4/8connectivity.png}\label{8 connectivity}}
+     \caption{Comparison of 4 connectivity (a) and 8 connectivity (b)}
+     \label{steady_state}
+\end{figure}
+This connectivity scheme reproduces on a grid the kinematics motion a robot is supposed to do in reality, so that performing the path search on the grid is representative of how the robot would move in reality. 
+The usual approach to search graphs for the optimal path 
+\subsection{A* algorithm}
+The A* algorithm was developed on the basis of the Dijkstra algorithm m improving its performance and is therefore one of the most widely used in path finding and graph traversal today.
+The components of this algorithm are the two points (start and end point), the grid and the nodes. 
+In this approach what is important is the cost of moving from one edge to the others.
+The predecessor of A*, Dijkstra algorithm, in fact focuses on the idea of cost: each part of the path has an intrinsic cost and the algorithm visits all of the existing edges trying to lower the overall cost. The algorithm manages a queue list where it keeps all the nodes that are still to analyzed, where the nodes with the smallest distance to the starting point is the first node in the queue, \citet{herzog}.
+Every time we move to some node, we encounter other nodes that previously were unaccessible, since we are dealing with k connectivity framework, and if these nodes are still to be traversed they are added to queue. This process ends as soon as the priority queue is emptied, namely when there are no nodes left to be investigated.
+Every time the algorithm shifts to some new node it records the path that led to that node and the specific costs, so the shortest path to each node can be computed by going backwards in the path.
+A* is based on the best first search speeds up this process by splitting the cost into a function:
+\begin{equation}
+    f(x) = g(x) + h(x)
+\end{equation}
+
+where g(x) is cost of the shortest path from the starting point to the current node and h(x), the so-called heuristic function, is an estimate of the cost of the shortest path from the current state to the goal.
+The kind of heuristic is a matter of choice, still it needs to comply with the following three properties:
+\begin{itemize}
+    \item Completeness: the algorithm is guaranteed to terminate when dealing with finite graphs having non negative edge weights.
+    \item Admissibility: the heuristic never overestimates the cost of reaching the goal. 
+    \begin{equation}
+        h(x) \le h^*(x)
+    \end{equation}
+    where h*(x) is defined as the optimal cost to reach a goal from the current node.
+    
+    \item Consistency: the estimate of the algorithm is always less than or equal to the estimated distance from any neighbouring node to the goal, plus the cost of reaching that node.
+\end{itemize}
+Time complexity strongly depends on the heuristic and in its worst case (the case in which the search space is unbounded), the number of nodes exploded is exponential in the depth of the solution:
+\begin{equation}
+    d: O(b^d)
+\end{equation}
+where b is defined as the branching factor.
+In its best case (the search space is a tree and there exists only one goal) it would develop in a polynomial fashion, provided that the following condition on the heuristic holds:
+\begin{equation}
+    |h(x) - h^*(x)| = O(\log{h^*(x)})
+\end{equation}
+where h* is the optimal heuristic.
+For this reason, a bounded relaxation is applied: it is possible to speed up the process by considering also approximate shortest paths. This process is bounded by a factor $\epsilon$ so that optimality  suffers a decrease that is not greater than (1 + $\epsilon$) times the optimal solution, computed without the hypothesis relaxation.
+Several possible algorithms exists for $\epsilon$, below is reported as an example the Dynamic Weighting, \citet{10.5555/1624775.1624777}:\\
+cost function is defined as
+\begin{equation}
+    f(n) = g(n) + (1 + \epsilon w(n))h(n)
+\end{equation}
+where w(n) is
+\begin{equation}
+    w(n) = 
+    \begin{cases}
+1 - \frac{d(n)}{N}, & \text{if}\ d(n) \le N \\
+0 , & \text{otherwise}
+\end{cases}
+\end{equation}
+with d(n) being the depth of the search and N the anticipated lenght of solution.
+Below is reported the pseudocode of the $A^{*}$ algorithm:
+
+\begin{algorithm}
+\caption{A algorithm}\label{alg:a_star}
+\begin{algorithmic}
+\STATE Input: A graph G(V,E) with source node start and goal node end
+\STATE Output Least cost path from start to end
+\STATE open list = {start}
+\STATE closed list = {}
+\STATE g(start) = 0
+\STATE h(start) = heuristic_function(start,end)
+\STATE f(start) = g(start) + h(start)
+\WHILE{open list is not empty}
+    \STATE m = Node on top of open list, with least f
+    \IF{m == end}
+        \RETURN
+    \ENDIF
+    \STATE remove m from open_list
+    \STATE add m to closed_list
+    \FOR{each n in child(m)}
+    \IF{n in closed list}
+    \STATE continue
+    \ENDIF
+    \STATE cost = g(m) + distance(m,n)
+    \IF{n in open list and cost < g(n)}
+    \STATE remove n from open list as new path is better
+    \ENDIF
+    \IF{n in closed list and cost < g(n)}
+    \STATE remove n from closed list
+    \ENDIF
+    \IF{n not in open list and n not in closed list}
+    \STATE add n to open list
+    \STATE g(n) = cost
+    \STATE h(n) = heuristic function(n, end)
+    \STATE f(n) = g(n) + h(n)
+    \ENDIF
+    \ENDFOR
+    \ENDWHILE
+\RETURN failure
+\end{algorithmic}
+\end{algorithm}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{Images/Chapter 4/Aproblem.png}
+    \caption{A* initial problem: red point is the starting node, green point is the goal}
+    \label{fig:aproblem}
+\end{figure}
+
+\begin{figure}[H]
+     \centering
+     \subfloat[][a]{\includegraphics[scale=0.50]{Images/Chapter 4/Asol1.png}\label{}}
+     \hfill
+     \subfloat[][b]{\includegraphics[scale=0.50]{Images/Chapter 4/Asol2.png}\label{}}
+     \hfill
+     \subfloat[][c]{\includegraphics[scale=0.50]{Images/Chapter 4/Asol3.png}\label{}}
+     \caption{}
+     \label{a_sol}
+\end{figure}
+\begin{figure}[H]
+     \centering
+     \subfloat[][a]{\includegraphics[scale=0.50]{Images/Chapter 4/Arel_sol1.png}\label{}}
+     \hfill
+     \subfloat[][b]{\includegraphics[scale=0.50]{Images/Chapter 4/Arel_sol2.png}\label{}}
+     \hfill
+     \subfloat[][c]{\includegraphics[scale=0.50]{Images/Chapter 4/Arel_sol3.png}\label{}}
+     \caption{}
+     \label{a_sol}
+\end{figure}
 \newpage
+\subsection{D* algorithm}
+\newpage
+
 \section{Local Planning}
+\subsection{Vector Field Histograms}
 \newpage
-\section{SLAM Toolbox}
+\subsection{Curvature Velocity Methods}
+\newpage
+\subsection{Dynamic Window Approach}
+\newpage
