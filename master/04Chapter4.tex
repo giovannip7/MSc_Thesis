@@ -198,8 +198,8 @@ It is important to distinguish between some concepts used in this scope:
     \item Manouver: a series of actions that a vehicle should execute
 \end{itemize}
 
-In the scope of this thesis we are going to analyze two path planning algorithms: A* and D*.
-Both this algorithms are part of the graph based planning family.
+In the scope of this thesis we are going to analyze a path planning algorithms, the so-called A*.
+This algorithms is part of the graph based planning family.
 The underlying idea is to construct a discretized representation of the map, building a graph out of it (4 or 8 neighbors connectivity are possible) and eventually searching for the shortest path in the graph, namely the optimal solution. It is relevant to report that the resolution of the grid directly influences the accuracy of the plan: a more dense resolution will describe in a more complete way the map it is investigating, thus resulting in a deeper analysis of the possible paths.
 
 \begin{figure}[H]
@@ -302,42 +302,166 @@ Below is reported the pseudocode of the $A^{*}$ algorithm:
 \RETURN failure
 \end{algorithmic}
 \end{algorithm}
-
+It is interesting to note that the algorithm returns either the optimal plan, hence it is an exact algorithm.
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.5]{Images/Chapter 4/Aproblem.png}
+    \includegraphics[scale=0.60]{Images/Chapter 4/Aproblem.png}
     \caption{A* initial problem: red point is the starting node, green point is the goal}
     \label{fig:aproblem}
 \end{figure}
 
 \begin{figure}[H]
      \centering
-     \subfloat[][a]{\includegraphics[scale=0.50]{Images/Chapter 4/Asol1.png}\label{}}
+     \subfloat[][a]{\includegraphics[scale=0.60]{Images/Chapter 4/Asol1.png}\label{}}
      \hfill
-     \subfloat[][b]{\includegraphics[scale=0.50]{Images/Chapter 4/Asol2.png}\label{}}
+     \subfloat[][b]{\includegraphics[scale=0.60]{Images/Chapter 4/Asol2.png}\label{}}
      \hfill
-     \subfloat[][c]{\includegraphics[scale=0.50]{Images/Chapter 4/Asol3.png}\label{}}
-     \caption{}
+     \subfloat[][c]{\includegraphics[scale=0.60]{Images/Chapter 4/Asol3.png}\label{}}
+     \caption{Shortest path relaxing the admissibility criteria}
      \label{a_sol}
 \end{figure}
 \begin{figure}[H]
      \centering
-     \subfloat[][a]{\includegraphics[scale=0.50]{Images/Chapter 4/Arel_sol1.png}\label{}}
+     \subfloat[][a]{\includegraphics[scale=0.60]{Images/Chapter 4/Arel_sol1.png}\label{}}
      \hfill
-     \subfloat[][b]{\includegraphics[scale=0.50]{Images/Chapter 4/Arel_sol2.png}\label{}}
+     \subfloat[][b]{\includegraphics[scale=0.60]{Images/Chapter 4/Arel_sol2.png}\label{}}
      \hfill
-     \subfloat[][c]{\includegraphics[scale=0.50]{Images/Chapter 4/Arel_sol3.png}\label{}}
-     \caption{}
+     \subfloat[][c]{\includegraphics[scale=0.60]{Images/Chapter 4/Arel_sol3.png}\label{}}
+     \caption{Optimal path obtained using the admissibility criteria. }
      \label{a_sol}
 \end{figure}
-\newpage
-\subsection{D* algorithm}
-\newpage
-
 \section{Local Planning}
+A strong assumption on which global planning technique was based is the fact that the space surrounding the robot from its starting point to its goal is almost totally known. Nonetheless, robots moving in every environment must be able to deal with unforeseen changes and adapt to them. For this purpose, a local planner is paired with the global planner: while the latter is responsible of trajectory planning and  works at a low frequency rate, the first one deals with trajectory following and obstacle avoidance at a much higher frequency rate.
+So, local planning is deemed to solve two tasks:
+\begin{itemize}
+    \item Ensure path following
+    \item Perform obstacle avoidance for objects that are not tracked in the map
+\end{itemize}
+\textbf{Obstacle Avoidance}
+“Let A be the robot moving in the workspace W, whose configuration space is CS. Let
+q be a configuration, $q_{t}$ this configuration in time t, $A(q_{t}) \in W$ the space occupied by the robot in this configuration.
+If in the vehicle there is a sensor, which in qt measures a portion of the space $S(q_{t}) \subset W$ identifying a set of obstacles $O(q_{t}) \subset W$. Let u be a constant control vector and $u(q_{t})$
+this control vector applied $q_{t}$ during time $\delta t$. Given $u(q_{t})$, the vehicle describes a trajectory \\
+$q_t + \delta_t = f(u, q_t, \delta t), with \delta t \geq 0$.
+Let $Q_t,T$ be the set of the configuration of the trajectory followed from $q_t$ with $\delta t \in (0,T)$ a given time interval. T > 0 is called the sampling period. Indicating with $q_target$ a target configuration. Then, in time $t_i$ the robot A is in $q_ti$, where a sensor measurement is obtained $S(q_{ti})$, and thus an obstacle description $O(q_ti)$.” \citet{SicilianoKhatib2008}
+The overall goal of the obstacle avoidance algorithm is to find a trajectory from that brings the robot closer to the goal in a non colliding way:\\
+$A(q_{ti}, T) \cap O(q_ti) = \emptyset$ \\
+$f(q_{ti}, q_{target}) \le F(q_{ti} + T, q_{target})$\\
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale = 0.5]{Images/Chapter 4/obstacleavoidance.png}
+    \caption{Sample of the most simple obstacle avoidance technique}
+    \label{fig:obstacleavoidance}
+\end{figure}
+In the following subsections an overview of the most famous local planning method will be provided, in particular:
+\begin{itemize}
+    \item Vector Field Histogram
+    \item Curvature Velocity
+    \item Dynamic Window Approach
+\end{itemize}
 \subsection{Vector Field Histograms}
-\newpage
+Vector Field Histogram was presented in 1991 by \citet{borenstein1991} and ensured fast obstacle detection and collision avoidance, not requiring the vehicle to stop. It is composed of two steps, where the first one all the possible motions are evaluate and in the second one the best one is traversed.
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.5]{Images/Chapter 4/vff1.png}
+        % \hfill
+        % \subfloat[]{}\includegraphics[scale=0.25]{Images/Chapter 4/vff2.png}
+        \caption{Vector Field Histogram}
+        \label{fig:my_label}
+    \end{figure}
+The Vector Field Histogram is based on the concept of virtual force field, a concept that resort somehow to the idea of imaginary forces acting on a robot, \citet{1087247}.
+VFF is composed of:
+\begin{itemize}
+    \item A two-dimensional Cartesian histogram grid for obstacle representation, where the grid is composed of cells defined by some coordinate (i,j) and $c_{i,j}$ holds the probability of the occupancy. A probability distribution is created by updating only one cell in the histogram grid for each range reading.
+    More specifically, the function $h^k(q_{ti})$ describes the density of the obstacle, on turn proportional to the probability of point occupancy P(p) and to distance from the obstacle, that is to say that the more the distance increases, the lower is the density.
+    The function $h^k(q_{ti})$ is defined as:
+    \begin{equation}
+        h^k(q_{ti}) = \int_{\Omega_k} P(p)^n\left(1 - \frac{d(q_{ti},p)}{d_{max}}\right)^m dp
+    \end{equation}
+    \begin{figure}[H]
+        \centering
+        \includegraphics{Images/Chapter 4/potentialfield.png}
+        \caption{Vector Field Histogram}
+        \label{fig:my_label}
+    \end{figure}
+    \item Application of potential field idea to the histogram grid
+    \item Previous two component are combined in real time enables sensor data to perform obstacle avoidance
+\end{itemize}
+All the directions ranged from the sensors are evaluated but only those that fall under the defined threshold are further investigated. A cost function is then established as follows:
+\begin{equation}
+    G = \alpha target_ direction + \beta wheel_ orientation + \gamma previous_ direction
+\end{equation}
+where $\alpha$ represents the direction of the goal, $\beta$ the smoothing of the action and $\gamma$ the previous direction of motion.
+Every direction, falling under the threshold, is evaluated through the newly defined cost function, that becomes the selection method.
+
 \subsection{Curvature Velocity Methods}
+Curvature Velocity Methods were developed by Reid Simmons in 1996.
+This approach to obstacle avoidance treats the problem as a constrained optimization in the velocity space of the robot, rather than in Cartesian space.
+The robot is deemed to travel along arcs of circles rather than straight lines, still it cannot turn instantaneously.
+This method works by adding constraints to the velocity space, defined as the set of controllable velocities and choosing the point in that space that complies with all the constraints and maximizes an objective function, that balances speed, safety and goal-directedness, \citet{simmons}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale= 0.5]{Images/Chapter 4/vcm.png}
+    \caption{Curvature Velocity Methods}
+    \label{fig:cvm}
+\end{figure}
+Only the interval of curvatures between $c_{min}$ and $c_{max}$ are considered, where the set of considered trajectories is obtained by using the curvatures tangent to obstacles to divide the velocity space  into regions of constant distance.
+
+$ c_{min} = 2(x_{obs}-y_{obs})/\sqrt{x^2_{obs} + y^2_{obs} + r^2_{obs}}$
+$
+    c_{min} = 2(x_{obs}-y_{obs})/\sqrt{x^2_{obs} + y^2_{obs} + r^2_{obs}}
+$
 \newpage
 \subsection{Dynamic Window Approach}
+The dynamic window approach is an obstacle avoidance technique developed by Dieter Fox, Wolfram Burgard and Sebastian Thrun in 1997. 
+In the DWA approach, the search for commands to control the robot takes place directly in velocity space. Compared to the previously seen method, the robot's dynamics are also integrated, thus further constraining the velocity search space to those that respect the dynamics constraints and are safe with respect to the obstacle.
+The process can be divided into search space and optimization, \citet{fox1997}.
+The search space of the possible velocities is reduced in three points:
+    \begin{itemize}
+        \item Circulare Trajectories: only circular trajectories are considered, determined by pair of (v,w) translational and rotational velocities
+        \item Admissible Velocities: restriction to consider only safe velocities
+        \item Dynamic Window: further restriction that applies to the admissible velocities, selecting only those that can be reached within a short time interval, respecting the constraints on acceleration.
+    \end{itemize}
+The dynamic windows search space reduces to $V_r = V_s \cap V_a \cap V_d$\\
+
+Optimization step proposes to maximize the objective function
+\begin{equation}
+    G(v,w) = \sigma(\alpha heading(v,w) + \beta dist(v,w) + \gamma vel(v,w))
+\end{equation}
+where \textit{heading} is a measure of progress towards goal location, \textit{dist} is the distance towards the closest obstacle and \textit{vel} is the the foward velocity of the robot.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.75]{Images/Chapter 4/dynamic_window.jpg}
+    \caption{Dynamic Window}
+    \label{fig:dwa}
+\end{figure}
+
+\begin{algorithm}
+\caption{DWA algorithm}
+\begin{algorithmic}
+\STATE BEGIN DWA(robotpose, robotGoal, robotModel)
+\STATE desiredV = calculateV(robotPose,robotGoal)
+\STATE   laserscan = readScanner()
+\STATE   $allowable_v$ = generateWindow(robotV, robotModel)
+\STATE   $allowable_w$  = generateWindow(robotW, robotModel)
+\FOR{each v in $allowable_v$}
+      \FOR{for each w in $allowable_w$}
+      \STATE dist = $find_dist$(v,w,laserscan,robotModel)
+      \STATE breakDist = calculateBreakingDistance(v)
+      \IF{(dist > breakDist)}  
+         \STATE heading = hDiff(robotPose,goalPose, v,w)
+         \STATE clearance = (dist-breakDist)/(dmax - breakDist)
+         \STATE cost = costFunction(heading,clearance, $abs(desired_v - v)$)
+         \IF{(cost > optimal)}
+            \STATE $best_v = v$
+            \STATE $best_w = w$
+            \STATE optimal = cost
+        \ENDIF
+      \ENDIF
+      \ENDFOR
+\ENDFOR
+\STATE  set robot trajectory to $best_v, best_w$
+\END
+\end{algorithmic}
+\end{algorithm}
 \newpage
