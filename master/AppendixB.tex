@@ -1,0 +1,267 @@
+
+
+\section{Testing Module}
+\begin{minted}[fontsize={\fontsize{9}{10}\selectfont}]{python}
+#!/usr/bin/env python
+from math import sqrt
+from pathlib import Path
+import rospy
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+from openpyxl import Workbook
+from openpyxl import load_workbook
+from cros.topics import ROSTopics
+rospy.init_node("measures")
+rospy.loginfo("Started measuring ...")
+RATE = 10  # Hz
+rate = rospy.Rate(RATE)
+# filename = "../measurement.xlsx"  # save in isc_slam
+rounding = 2
+filename = Path.home() / 'MEASURES/measurement.xlsx'
+
+def cb_status(msg):
+    global goal_status
+    status_array = msg.status_list
+    try:
+        goal_status = status_array[len(status_array) - 1].status
+    except:
+        # rospy.loginfo("status not received yet")
+        goal_status = 0
+
+def cb_cmd_vel(msg):
+    global cmd_vel, cmd_vel_received
+    cmd_vel = msg
+    cmd_vel_received = True
+
+
+def cb_odom(msg):
+    global odom, top_speed
+    odom = msg
+    top_speed = max(top_speed, msg.twist.twist.linear.x)
+
+
+movement = 0  # [0: not started, 1: navigating, 2: rotating,\\
+3: backwards, 4:stuck]
+
+cmd_vel = Twist()
+odom = Odometry()
+goal_status = 0
+nav_time = 0
+nav_dist = 0
+nav_speed_integral = 0
+nav_avg_speed = 0
+top_speed = 0
+
+cmd_vel_received = False
+fw_time = 0
+fw_speed_integral = 0
+fw_avg_speed = 0
+
+rot_time = 0
+rot_speed_integral = 0
+rot_avg_speed = 0
+
+back_time = 0
+stuck_time = 0
+
+stopped = True
+rospy.Subscriber(ROSTopics.GOAL_STATUS.name, ROSTopics.GOAL_STATUS.data_class, 
+cb_status)
+rospy.Subscriber(ROSTopics.CMD_VEL_MUX_OUT.name, ROSTopics.CMD_VEL_MUX_OUT.data_class, 
+cb_cmd_vel)
+rospy.Subscriber(ROSTopics.T265_ODOM.name, ROSTopics.T265_ODOM.data_class, cb_odom)
+
+
+while not rospy.is_shutdown():
+    last_time = rospy.Time.now()
+    last_pos = [odom.pose.pose.position.x, odom.pose.pose.position.y]
+    while not goal_status == 0:  # if navigation started at least once
+        dt = (rospy.Time.now() - last_time).to_sec()
+        ds = sqrt((odom.pose.pose.position.x - last_pos[0]) ** 2 + 
+        +(odom.pose.pose.position.y - last_pos[1]) ** 2)
+        last_time = rospy.Time.now()
+        last_pos = [odom.pose.pose.position.x, odom.pose.pose.position.y]
+        # print("cycle - ", last_time.to_sec())
+
+        if goal_status == 1:  # if in navigation
+            if stopped:
+                stopped = False
+
+            # GENERAL IF MOVE BASE IS NAVIGATING
+            nav_time += dt
+            nav_dist += ds
+            nav_speed_integral += odom.twist.twist.linear.x * dt
+            nav_avg_speed = nav_speed_integral / nav_time
+
+            # IF ROBOT IS REQUESTING FORWARD MOVEMENT
+            if cmd_vel_received and cmd_vel.linear.x > 0.05:  
+            # if received cmd_vel requesting of going forward
+                if movement != 1:
+                    rospy.loginfo("Navigating...")
+                    movement = 1
+                fw_time += dt
+                fw_speed_integral += odom.twist.twist.linear.x * dt
+                fw_avg_speed = fw_speed_integral / fw_time
+
+            # IF ROBOT IS ROTATING ON PLACE
+            if cmd_vel_received and abs(cmd_vel.linear.x) < 0.05 and abs(
+                    cmd_vel.angular.z) >= 0.1:  
+                    # if received cmd_vel requesting of going forward
+                if movement != 2:
+                    rospy.loginfo("Rotating on place...")
+                    movement = 2
+                rot_time += dt
+                rot_speed_integral += abs(odom.twist.twist.angular.z) * dt
+                rot_avg_speed = rot_speed_integral / rot_time
+
+            # IF ROBOT IS MOVING BACKWARDS
+            if cmd_vel_received and odom.twist.twist.linear.x < - 0.05:  
+            # measuring time while going backwards
+                if movement != 3:
+                    rospy.loginfo("Going backwards...")
+                    movement = 3
+                back_time += dt
+
+            # STUCK ON PLACE
+            # if cmd_vel_received and abs(odom.twist.twist.linear.x) < 0.05 
+            and abs(odom.twist.twist.angular.z) < 0.05:
+            if cmd_vel_received and abs(odom.twist.twist.linear.x) < 0.05
+            and abs(odom.twist.twist.angular.z) < 0.1 \
+                    and cmd_vel.angular.z < 0.1:
+                if movement != 4:
+                    rospy.loginfo("Stuck...")
+                    movement = 4
+                stuck_time += dt
+
+            cmd_vel_received = False  # resetting to False to check if cmd_vel is still 
+            received in the next loop
+
+        elif goal_status == 3 and not stopped:  # stopped to print results just once
+            rospy.loginfo("Robot arrived to goal")
+            # PRINT SPEEDS
+            print("nav_avg_speed: ", round(nav_avg_speed, 2),
+        
+                  " | mov_fw_avg_speed:", round(fw_avg_speed, 2),
+                  " | rot_avg_speed:", round(rot_avg_speed, 2),
+                  " | nav_dist:", round(nav_dist, 2),
+                  " | top_speed:", round(top_speed, 2))
+            # PRINT TIMES
+            print("nav_time:      ", round(nav_time, 2),
+                  " | moving_fw_time:  ", round(fw_time, 2),
+                  " | rotating_time:", round(rot_time, 2),
+                  " | back_time:", round(back_time, 2),
+                  " | stuck_time:", round(stuck_time, 2))
+            List = [nav_avg_speed, fw_avg_speed, rot_avg_speed, nav_dist,
+                    top_speed, nav_time, fw_time, rot_time, back_time, stuck_time]
+            List = [round(num, rounding) for num in List]
+
+            try:
+                wb = load_workbook(filename)
+                ws = wb.worksheets[0]  # select first worksheet
+            except FileNotFoundError:
+                headers_row = ['Speed req.', 'tot_avg_speed', 'fw_avg_speed',
+                               'rot_avg_speed', 'nav_dist', 'top_speed',
+                               'nav_time', 'moving_fw_time', 'rotating_time', 
+                               'back_time', 'stuck_time']
+                wb = Workbook()
+                ws = wb.active
+                ws.append(headers_row)
+            ws.append(List)
+            wb.save(filename)
+
+            stopped = True
+        rate.sleep()
+
+\end{minted}
+\section{Current Measure}
+\begin{minted}[fontsize={\fontsize{9}{10}\selectfont}]{python}
+    def _cb_motor_current(self, msg: Float32MultiArray):
+        t_now = time.time()
+        delta_t = t_now - self._last_time_motor
+        # get values of current of the wheels, divide by 10 for hardware reason
+        self._l_current = msg.data[0] / 10
+        self._r_current = msg.data[1] / 10
+        # evaluate the absorbed current in [A*h] for each wheel (Ampere * hour)
+        self._r_consume = self._r_current * delta_t / 3600
+        self._l_consume = self._l_current * delta_t / 3600
+        if not self.differential_drive:
+            self._rl_current = msg.data[2] / 10
+            self._rr_current = msg.data[3] / 10
+        else:
+            self._rl_current = 0
+            self._rr_current = 0
+        self._rl_consume = self._rl_current * delta_t / 3600
+        self._rr_consume = self._rr_current * delta_t / 3600
+        # evaluate the sum of the absorbed current of each wheel
+        total_consume = self._r_consume + self._l_consume + self._rl_consume + self._rr_consume
+        self._e_abs += total_consume
+        self._last_time_motor = t_now
+\end{minted}
+\section{Postprocesser}
+\begin{minted}[fontsize={\fontsize{9}{10}\selectfont}]{cpp}
+ // First, include ros library
+#include <ros/ros.h>
+ // Include then pcl library required
+    #include <pcl_conversions/pcl_conversions.h>
+    #include <pcl/point_cloud.h>
+    #include <pcl/point_types.h>
+    #include <pcl/filters/voxel_grid.h>
+    #include <pcl/filters/statistical_outlier_removal.h>
+    #include <pcl/filters/statistical_outlier_removal.h>
+    #include <pcl/io/pcd_io.h>
+
+ // Include PointCloud2 message
+ #include <sensor_msgs/PointCloud2.h>
+
+ // Topics (corrected, needs to be checked)
+ static const std::string IMAGE_TOPIC = "/d400_lb/depth/color/points";
+ static const std::string PUBLISH_TOPIC = "/pointcloudfiltered";
+
+ using namespace std::chrono;
+
+ // ROS Publisher
+ ros::Publisher pub;
+ int i;
+
+ void cloud_cb(const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
+ {
+
+     auto start = high_resolution_clock::now();
+     // Container for original & filtered data
+     pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2;
+     pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
+     pcl::PCLPointCloud2 cloud_filtered;
+
+     // Convert to PCL data type
+     pcl_conversions::toPCL(*cloud_msg, *cloud);
+     //filtering with StatisticalOutlierRemoval
+     pcl::StatisticalOutlierRemoval<pcl::PCLPointCloud2> sor;
+     sor.setInputCloud(cloudPtr);
+     sor.setMeanK(9);
+     sor.setStddevMulThresh(1.0);
+     sor.filter(cloud_filtered);
+     // Convert to ROS data type
+     sensor_msgs::PointCloud2 output;
+     pcl_conversions::moveFromPCL(cloud_filtered, output);
+     // Publish the data
+     pub.publish (output);
+     auto stop = high_resolution_clock::now();
+     auto duration = duration_cast<microseconds>(stop - start);
+     std::cout << duration.count() << std::endl;
+ }
+ int main (int argc, char** argv)
+ {
+     // Initialize the ROS Node ""
+     ros::init (argc, argv, "subscriber_filter_republisher");
+     ros::NodeHandle nh;
+     // Create a ROS Subscriber to IMAGE_TOPIC with a queue_size of 1 and a callback 
+     function to cloud_cb
+     ros::Subscriber sub = nh.subscribe(IMAGE_TOPIC, 1, cloud_cb);
+     // Create a ROS publisher to PUBLISH_TOPIC with a queue_size of 1
+     pub = nh.advertise<sensor_msgs::PointCloud2>(PUBLISH_TOPIC, 1);
+     // Spin
+     ros::spin();
+     // Success
+     return 0;
+ }
+\end{minted}

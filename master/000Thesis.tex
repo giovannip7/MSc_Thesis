@@ -19,16 +19,24 @@
 \usepackage{setspace} % For using single or double spacing
 \usepackage{emptypage} % To insert empty pages
 \usepackage{multicol} % To write in multiple columns (executive summary)
+\usepackage{booktabs}
+\usepackage{rotating}
 \usepackage{multirow}
 \usepackage{outlines}
 \usepackage{lscape}
+\usepackage{minted}
 \usepackage{textgreek}
 \setlength\columnsep{15pt} % Column separation in executive summary
 \setlength\parindent{0pt} % Indentation
 \raggedbottom  
+\usepackage[pygopt={texcomments=true,style=emacs}]{pythontex}
+\setpythontexlistingenv{listing}
 
-\usepackage[nottoc]{tocbibind}
-
+\newcounter{sublisting}[listing]
+\newcommand{\codeline}[1]{%
+  \addcontentsline{lopytx}{listing}%
+    {\protect\numberline{\hspace{0.5in}\thelisting.\arabic{FancyVerbLine}}\hspace{0.5in}#1}%
+}
 
 % PACKAGES FOR TITLES
 \usepackage{titlesec}
@@ -71,7 +79,7 @@
 \usepackage{longtable} % Tables that can span several pages
 \usepackage{colortbl}
 \usepackage{hhline}
-
+\usepackage{pgfplots}
 % PACKAGES FOR ALGORITHMS (PSEUDO-CODE)
 \usepackage{algorithm}
 \usepackage{algorithmic}
@@ -90,6 +98,7 @@
 \usepackage{lipsum} % DUMMY PACKAGE
 \usepackage{fancyhdr} % For the headers
 \fancyhf{}
+\PassOptionsToPackage
 
 % Input of configuration file. Do not change config.tex file unless you really know what you are doing. 
 \input{Configuration_Files/config}
@@ -131,7 +140,7 @@
 \frontmatter % Use roman page numbering style (i, ii, iii, iv...) for the preamble pages
 
 \puttitle{
-	title=Simulation and Testing of Navigation of a Humanoid Robot, % Title of the thesis
+	title=Simulation and Testing of Navigation for an Autonomous Mobile Robot, % Title of the thesis
 	name=Giovanni Porcellato, % Author Name and Surname
 	course=Automation and Control Engineering - Ingegneria dell'Automazione, % Study Programme (in Italian)
 	ID  = 10745779,  % Student ID number (numero di matricola)
@@ -148,17 +157,29 @@
 
 % ABSTRACT IN ENGLISH
 \chapter*{Abstract} 
+This thesis presents an integrated module for the simulation of a robot in a virtual environment, the creation of a testing platform and an attempt to solve the problems encountered during testing. 
+The proposed approach thus offers both a solution to the complications encountered when testing hardware and a tool for collecting data and creating statistics in an automated manner.
 
-\\
-\\
-\textbf{Keywords:} here, the keywords, of your thesis % Keywords
+The creation of the simulator benefits the development team, since they can take advantage of a system in which they can comfortably test new algorithms, without the risk of damaging the robot or its environment.
+
+The creation of the testing platform serves the purpose of having solid data on which future performance improvements can be analytically evaluated.
+
+Finally, the development of the image filter, responds to the need to solve problems related to certain light conditions that prevented the navigation stack from functioning correctly and consequently caused a degradation in performance.
+
+\textbf{Keywords:} robotics, simulation, navigation, computer vision, image filter, testing platform % Keywords
 
 % ABSTRACT IN ITALIAN
 \chapter*{Abstract in lingua italiana}
-Qui va l'Abstract in lingua italiana della tesi seguito dalla lista di parole chiave.
-\\
-\\
-\textbf{Parole chiave:} qui, vanno, le parole chiave, della tesi % Keywords (italian)
+Questa tesi presenta un modulo integrato per la simulazione di un robot in ambiente virtuale, la creazione di una piattaforma testing e un tentativo di soluzione ai problemi riscontrati in fase di testing. 
+L'approccio proposto offre quindi al contempo una soluzione alle complicanze che si incontrano quando si ha a che fa testing su hardware e uno strumento per raccogliere dati e creare statistiche in modo automatizzato.
+
+La creazione del simulatore beneficia il team di sviluppo, dal momento che può sfruttare  un sistema in cui testare comodamente i nuovi algoritmi, senza rischio di danneggiare il robot o l'ambiente circostante.
+
+La creazione della piattaforma di testing risponde allo scopo di avere dei dati solidi su cui poter valutare i futuri miglioramenti delle performance in modo analitico.
+
+Infine, lo sviluppo del filtro d'immagine, risponde all'esigenza di risolvere delle problematiche relative a certe condizioni di luce che impedivano il corretto funzionamento dello stack di navigazione e di conseguenza che causavano un degradamento delle performance.
+
+\textbf{Parole chiave:} robotica mobile, simulatore, navigazione, visione computazionale, test
 
 %----------------------------------------------------------------------------
 %	LIST OF CONTENTS/FIGURES/TABLES/SYMBOLS
@@ -217,8 +238,6 @@ This section consists of:
 \input{04Chapter4}
 
 \chapter*{Contribution}
-This section contains the contribution of this thesis and attempts to summarise the developments and results obtained
-This section consists of:
 \begin{itemize}
     \item \textbf{Chapter \ref{ch:sim_test}: \nameref{ch:sim_test}}
     \item \textbf{Chapter \ref{ch:pcl}: \nameref{ch:pcl}}
@@ -235,8 +254,8 @@ This section consists of:
 
 \chapter{Conclusions and future developments}
 \label{ch:conclusions}%
-A final chapter containing the main conclusions of your research/study
-and possible future developments of your work have to be inserted in this chapter.
+In the first part of this work, a simulator was developed from scratch to test new navigation algorithms. This made it possible to test the new custom recovery behaviour, for example, first in the simulated environment and once the goodness of the development was seen, it was implemented in the real robot. Consequently, a testing platform was developed that provides a comprehensive overview of performance measurements, motor current data and a robot trajectory visualiser. During testing, a problem was observed with the depth camera, which recognised reflections on the floor as obstacles. A real time filter was then implemented to decrease the density of the pointcloud data. Thanks to this, it was possible to solve the problem of phantom obstacles by decreasing the stuck time, in a computational time that does not affect the result. 
+The simulator could be subject to further improvements in the future: one possible route that could be taken would be to break free from gazebo plug-ins, for example by modelling the differential drive on a par with that used in the real robot. Furthermore, in order to make the simulated model completely mirror the real one, another possibility that could be pursued would certainly be to analytically model friction and wheel slip. As far as the pointcloud filter is concerned, other possible solutions can be tested: there are several filters for manipulating the point cloud, the results of which have yet to be tested.
 
 %-------------------------------------------------------------------------
 %	BIBLIOGRAPHY
@@ -253,13 +272,12 @@ and possible future developments of your work have to be inserted in this chapte
 \addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
 \appendix
 \chapter{Appendix A}
-If you need to include an appendix to support the research in your thesis, you can place it at the end of the manuscript.
-An appendix contains supplementary material (figures, tables, data, codes, mathematical proofs, surveys, \dots)
-which supplement the main results contained in the previous chapters.
+\label{ch:appA}
+\input{AppendixA}
 
 \chapter{Appendix B}
-It may be necessary to include another appendix to better organize the presentation of supplementary material.
-
+\label{ch:appB}
+\input{AppendixB}
 
 % LIST OF FIGURES
 \listoffigures
@@ -281,7 +299,32 @@ It may be necessary to include another appendix to better organize the presentat
 
 % ACKNOWLEDGEMENTS
 \chapter*{Acknowledgements}
-Here you might want to acknowledge someone.
+Lo sviluppo di questa tesi si pone come un traguardo per me, alla fine di un percorso
+iniziato ormai tre anni fa quando decisi d'intraprendere il passaggio da economia a ingegneria.
+
+
+Desidero quindi ringraziare prima di tutto la mia famiglia, che da sempre mi supporta,
+credendo tanto quanto me in questo progetto. Senza il loro appoggio non sarei arrivato
+fino a qui. Una dedica in particolare va a mio nonno, per essere stato per me un esempio
+di dedizione al lavoro e forza di determinazione.
+
+Ringrazio le persone che mi hanno accompagnato in questi anni e che tutt’ora
+mi sono vicine ogni giorno, con le quali ho condiviso momenti importanti che spero di ricordare a lungo.
+
+Grazie ad Oversonic Robotics, a Fabio Puglia per avermi dato l’opportunità di lavorare
+a un progetto così ambizioso, all’ing. Lorenzo Romanini per il supporto e a tutte le
+persone incontrate a Besana che hanno alleggerito le giornate di lavoro.
+
+
+Vorrei esprimere inoltre la mia gratitudine al professor Matteo Matteucci, per la sua
+pazienza e la sua disponibilità nell’affiancarmi in questa tesi.
+
+Ringrazio il Politecnico di Milano e il professor Paolo Bolzern per avermi dato la possibilità d'intraprendere questo percorso, anche quando il
+mio background non lo consentiva.
+Ringrazio infine la città di Milano per avermi accolto e fatto crescere dal punto di vista
+umano e professionale in questi anni.
+
+
 
 \cleardoublepage
 

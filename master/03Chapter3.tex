@@ -78,7 +78,7 @@ Perception is then extracted from the sensors that provide information about the
 In the 1990s, research was further accelerated by the need to rely on robots to replace human presence in critical environments.\\
 As we enter the new millennium, robots have undergone profound transformations both in their scope of use and in their shapes and sizes. 
 \subsubsection{Humanoid Robots}
-As reported in the article "Humanoid Robots:Historical Perspective, Overview and Scope", \citet{Siciliano2020}:\\
+As reported in the article "Humanoid Robots: Historical Perspective, Overview and Scope", \citet{Siciliano2020}:\\
 \\
 "\textit{The long saga of humanoid robots in science fiction has influenced generations
 of researchers, as well as the general public, and serves as evidence that people
@@ -133,7 +133,7 @@ As far as the robot is concerned, all the computational power is provided by 2 I
 The operating system which is mounted on is Linux Ubuntu 20.04 (Focal Fossa), and all the modules are running containers that on turn are managed by KubeEdge, a containers orchestration system built on Kubernetes.
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.6]{Images/Chapter 3/oversonicarch.png}
+    \includegraphics[scale=0.28]{Images/Chapter 3/oversonicarch.png}
     \caption{Oversonic Architecture}
     \label{fig:oversonicarch}
 \end{figure}
@@ -167,15 +167,16 @@ The robots covered by the work in this thesis are mainly three
     \item R007 is a small autonomous mobile robot used by Oversonic as a prototype in the testing phase and features skid steering kinematics. In fact, it has two belts with two torque motors. The system is based on an Intel NUC and peripherals: two or four lidar sensors, a tracking camera and a depth camera mounted on the top base. The use of this AMR (autonomous mobile robot) is mainly conceived in conjunction with its larger 'brother' Robee or in industrial logistics environments.
     \begin{figure}[H]
         \centering
-        \includegraphics[scale=0.05]{Images/Chapter 3/r007.jpg}
+        \includegraphics[scale=0.03]{Images/Chapter 3/r007.jpg}
         \caption{R007}
         \label{fig:r007}
     \end{figure}
+    \newpage
     \item R012 is the humanoid robot developed in Oversonic Robotics, now in its fourth evolution from the initial prototype and featuring a differential drive base. The system is divided into two parts, a lower body and an upper body, each featuring an NUC terminal and several sensors, but in this analysis we will focus exclusively on the lower part. 
     The lower body in fact contains within it the two torque motors, which move two wheels actively. For the robot's stability, two passive caster wheels have been added to the front and rear of the base. Two Lidar sensors are then mounted on the base and going up about halfway up the torso are a tracking and depth camera. 
     \begin{figure}[H]
         \centering
-        \includegraphics[scale=0.15]{Images/Chapter 3/r012.PNG}
+        \includegraphics[scale=0.10]{Images/Chapter 3/r012.PNG}
         \caption{Robee R012}
         \label{fig:r012}
     \end{figure}
@@ -183,12 +184,12 @@ The robots covered by the work in this thesis are mainly three
     It has a differential drive base with two torque motor actuators, like R012 but with a physical arrangement of peripheral sensors but only one NUC.
     \begin{figure}[H]
         \centering
-        \includegraphics[scale=0.15]{Images/Chapter 3/n002.jpg}
+        \includegraphics[scale=0.10]{Images/Chapter 3/n002.jpg}
         \caption{N002}
         \label{fig:N002}
     \end{figure}
 \end{itemize}
-The main features of the skid steering and differential drive kinematics will be listed below.
+The main features of the skid steering and differential drive kinematics will be listed.
 \textbf{Skid Steering}
 
 Skid Steering is a particular kinematics configuration featuring two tracks. It is composed of two tracks on its basic configuration, left and right, and the control variables are indeed left and right speed.
@@ -216,7 +217,7 @@ While in motion, this kind of drive presents multiple ICR and all of them share 
     \label{fig:skidsteer}
 \end{figure}
  Under proper assumptions, skid-steering can be simplified to a differential drive kinematics.
- 
+ \newpage
 \textbf{Differential Drive}
 
 Differential drive configuration present the following construction:
@@ -355,40 +356,63 @@ The reason for this conversion also comes from the fact that one often then has 
 The T265 tracking camera is designed to integrate odometry data from the robot. It is in fact an independent and robust support for visual-inertia odometry and re-localisation.
 A key strength of visual-inertial odometry is that the various sensors available complement each other. The images from the visual sensors are supplemented by data from an onboard inertial measurement unit (IMU), which includes a gyroscope and accelerometer. The aggregated data from these sensors is fed into simultaneous localization and mapping (SLAM) algorithms.
 The tracking is done by comparing the information collected by the two fish-eye cameras, which collect images at 30 fps, \citet{inteltracking}.
+% \begin{figure}[H]
+%     \centering
+%     \begin{subfigure}
+%             \includegraphics[scale=0.5]{Images/Chapter 3/t265diagram.jpg}
+%     \caption{Block diagram of Intel T265}
+%     \label{fig:t265block}
+%     \end{subfigure}%
+%     ~
+%     \begin{subfigure}
+%         \includegraphics[scale=0.5]{Images/Chapter 3/t265.jpg}
+%         \caption{T265 Intel Tracking Camera used in Robee}
+%         \label{fig:t265}
+%     \end{subfigure}
+% \end{figure}
 \begin{figure}[H]
-    \centering
-    \begin{subfigure}
-            \includegraphics[scale=0.5]{Images/Chapter 3/t265diagram.jpg}
-    \caption{Block diagram of Intel T265}
-    \label{fig:t265block}
-    \end{subfigure}%
-    ~
-    \begin{subfigure}
-        \includegraphics[scale=0.5]{Images/Chapter 3/t265.jpg}
-        \caption{T265 Intel Tracking Camera }
-        \label{fig:t265}
-    \end{subfigure}
-\end{figure}
+\centering
+\begin{tabular}{cc}
+\subfloat[Block diagram of Intel T265]{\includegraphics[scale=0.6]{Images/Chapter 3/t265diagram.jpg}}&
+\subfloat[T265 Intel Tracking Camera used in Robee]{\includegraphics[scale=0.5]{Images/Chapter 3/t265.jpg}}\\
 
+\end{tabular}
+\end{figure}
+\newpage
 \textbf{YDLidar}
 
 LiDAR (Light Detection And Ranging) identifies technology that measures the distance to an object by illuminating it with laser light, while at the same time being able to return high-resolution three-dimensional information about the surrounding environment. A LiDAR typically uses several components: lasers, photodetectors and readout integrated circuits (ROICs) with time-of-flight (TOF) capability to measure distance by illuminating a target and analysing the reflected light.
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}
-            \includegraphics[scale=0.7]{Images/Chapter 3/lidar.jpg}
-            \caption{Lidar scheme}
-            \label{fig:lidarscheme}
-        \end{subfigure}
-    \begin{subfigure}
-            \includegraphics{Images/Chapter 3/ydlidar.jpg}
-            \caption{YDLidar }
-            \label{fig:ydlidar}
-    \end{subfigure}
-\end{figure}
-YDLIDAR G2 is a 360-degree two-dimensional rangefinder 
-developed by YDLIDAR. Based on the principle of triangulation, it is equipped withrelatedoptics, electricity, and algorithm design to achieve high-frequency and high-precision distancemeasurement. The mechanical structure rotates 360 degrees to continuously output the angle information as well as the point cloud data of the scanning environment while ranging.
 
+\begin{figure}[H]
+\centering
+\begin{tabular}{cc}
+\subfloat[Lidar architecture]{\includegraphics[scale=0.7]{Images/Chapter 3/lidar.jpg}}&
+\subfloat[Ydlidar model G4 used in Robee]{\includegraphics[width = 3in]{Images/Chapter 3/ydlidar.jpg}}\\
+\end{tabular}
+\end{figure}
+YDLIDAR G4 is a 360-degree two-dimensional rangefinder 
+developed by YDLIDAR. Based on the principle of triangulation, it is equipped with related optics, electricity, and algorithm design to achieve high-frequency and high-precision distance measurement. The mechanical structure rotates 360 degrees to continuously output the angle information as well as the point cloud data of the scanning environment while ranging. YDlidar provides a built in bridge to ROS that ease the integration with the overall system.
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{Item}                              & \textbf{Min} & \textbf{Typical} & \textbf{Max} & \textbf{Unit} \\ \hline
+\textbf{Ranging Frequency}                 & /            & 9000             & /            & Hz            \\ \hline
+\multirow{3}{*}{\textbf{Ranging distance}} & 0.12         & /                & 16           & m             \\ \cline{2-5} 
+                                           & 0.26         & /                & 16           & m             \\ \cline{2-5} 
+                                           & 0.28         & /                & 16           & m             \\ \hline
+\textbf{Field of View}                     & /            & 0-360            & /            & Deg           \\ \hline
+\textbf{Angle Resolution} &
+  \begin{tabular}[c]{@{}c@{}}0.2 \\ at 5 Hz\end{tabular} &
+  \begin{tabular}[c]{@{}c@{}}0.28 \\ at 7 Hz\end{tabular} &
+  \begin{tabular}[c]{@{}c@{}}0.48 \\ at 12 Hz\end{tabular} &
+  Deg \\ \hline
+\end{tabular}
+\caption{Specifications  for Ydlidar G4}
+\label{tab:ydlidar}
+\end{table}
 \subsubsection{Visual Fiducial System}
 During the use and development of Robee's navigation, so-called Apriltags were used, a particular visual fiducial system chosen for its robustness and integration with the simulated Gazebo environment.
 Visual fiducials are nothing more than artificial landmarks, designed to be easily recognisable within the working environment and distinguishable from one another.

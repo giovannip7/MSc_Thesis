@@ -131,6 +131,44 @@ journal = {Proceedings of the National Conference on Artificial Intelligence}
 
 @article{Macenski2021, doi = {10.21105/joss.02783}, url = {https://doi.org/10.21105/joss.02783}, year = {2021}, publisher = {The Open Journal}, volume = {6}, number = {61}, pages = {2783}, author = {Steve Macenski and Ivona Jambrecic}, title = {SLAM Toolbox: SLAM for the dynamic world}, journal = {Journal of Open Source Software} }
 
+@Inbook{Dhillon1991,
+author="Dhillon, B. S.",
+title="Robot Testing and Information Related to Robots",
+bookTitle="Robot Reliability and Safety",
+year="1991",
+publisher="Springer New York",
+address="New York, NY",
+pages="210--225",
+abstract="Testing is an important aspect associated with robots. This may be performance testing, reliability testing, or any other type of testing. In this Chapter, we will deal with robot performance and reliability testing in particular. There are several types of performance testing techniques which have been used since the inception of the robot [1], [2]. The forms of performance testing vary from the verification of the design goals by the robot manufacturer to the determination of the most appropriate robot for a specific use. The purpose of the robot reliability testing program is to obtain knowledge of failures---in particular, robot failure occurrence patterns. Robot reliability tests may be categorized into three broad groups [2]: reliability development and demonstration testing, qualification and acceptance testing, and operational testing.",
+isbn="978-1-4612-3148-6",
+doi="10.1007/978-1-4612-3148-6_12",
+url="https://doi.org/10.1007/978-1-4612-3148-6_12"
+}
+
+
+@InProceedings{pclib,
+	author    = {Radu Bogdan Rusu and Steve Cousins},
+	title     = {{3D is here: Point Cloud Library (PCL)}},
+	booktitle = {{IEEE International Conference on Robotics and Automation (ICRA)}},
+	month     = {May 9-13},
+	year      = {2011},
+	address   = {Shanghai, China}
+}
+
+@article{Ning2018AnEO,
+  title={An efficient outlier removal method for scattered point cloud data},
+  author={Xiaojuan Ning and Fan Li and Ge Tian and Yinghui Wang},
+  journal={PLoS ONE},
+  year={2018},
+  volume={13}
+}
+@misc{intelrealsense,
+  author       = {Intel RealSense Dev}, 
+  title        = {Decimation Filter},
+  url = {https://dev.intelrealsense.com/docs/post-processing-filters
+}
+}
+
 @misc{rosservice,
   author       = {ROS Wiki}, 
   title        = {Services},
@@ -253,7 +291,21 @@ author = {Emil T. Jonasson and Luis {Ramos Pinto} and Alberto Vale},
 keywords = {Remote sensing, Mobile robotics, Nuclear maintenance, Radar, LIDAR, Depth camera},
 abstract = {Sensor technologies will play a key role in the success of Remote Maintenance (RM) systems for future fusion reactors. In this paper, three key types of sensor technologies of particular interest in the robotics field at the moment are evaluated, namely: Colour-Depth cameras, LIDAR (Light Detection And Ranging), and Millimetre-Wave (mmWave) RADAR. The evaluation of the sensors is performed based on the following criteria: the types of data they provide, the accuracy at different distances, and the potential environmental resistance of the sensor (namely gamma radiation). The authors review the progress in making these three types of sensor capable of operating in Fusion facilities and discuss possible mitigations. Experiments are performed to demonstrate the pros and cons of each type of sensor by collecting data from radar, colour-depth camera and LIDAR, simultaneously. The paper concludes with a performance comparison between sensors, as well as discussing the possibility of combining them, fostering redundancy in case of failure of any individual sensor device.}
 }
+@article{10.1371/journal.pone.0201280,
+    doi = {10.1371/journal.pone.0201280},
+    author = {Ning, Xiaojuan AND Li, Fan AND Tian, Ge AND Wang, Yinghui},
+    journal = {PLOS ONE},
+    publisher = {Public Library of Science},
+    title = {An efficient outlier removal method for scattered point cloud data},
+    year = {2018},
+    month = {08},
+    volume = {13},
+    url = {https://doi.org/10.1371/journal.pone.0201280},
+    pages = {1-22},
+    abstract = {Outlier removal is a fundamental data processing task to ensure the quality of scanned point cloud data (PCD), which is becoming increasing important in industrial applications and reverse engineering. Acquired scanned PCD is usually noisy, sparse and temporarily incoherent. Thus the processing of scanned data is typically an ill-posed problem. In the paper, we present a simple and effective method based on two geometrical characteristics constraints to trim the noisy points. One of the geometrical characteristics is the local density information and another is the deviation from the local fitting plane. The local density based method provides a preprocessing step, which could remove those sparse outlier and isolated outlier. The non-isolated outlier removal in this paper depends on a local projection method, which placing those points onto objects. There is no doubt that the deviation of any point from the local fitting plane should be a criterion to reduce the noisy points. The experimental results demonstrate the ability to remove the noisy point from various man-made objects consisting of complex outlier.},
+    number = {8},
 
+}
 @online{robeeimg,
   author       = {Repubblica}, 
   title        = {},
@@ -408,7 +460,10 @@ abstract = {Sensor technologies will play a key role in the success of Remote Ma
   year         = 1993,
   note         = {An optional note}
 }
-
+@misc{amclimage,
+  author       = {Robotics Knowledge Base}, 
+  url         = {https://roboticsknowledgebase.com/wiki/state-estimation/adaptive-monte-carlo-localization/
+}
 @phdthesis{phdthesis,
   author       = {Peter Joslin}, 
   title        = {The title of the work},
